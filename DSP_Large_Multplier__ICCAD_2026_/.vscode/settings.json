@@ -1,0 +1,11 @@
+{
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": ".txt",
+                "cmd": "make run-with-bib", 
+                "autoShowOutputPanel": "always"
+            }
+        ]
+    }
+}

@@ -1,0 +1,118 @@
+% N+1-bit multiplication diagram - NLSB version (N bits are LSB)
+\begin{tikzpicture}[
+    scale=1,
+    every node/.style={align=center}
+]
+
+% Label A at top (centered)
+\node[above] at (2,1) {$A$};
+
+% First operand A (left rectangle)
+% 1 bit MSB on left, N bits LSB on right
+\draw[thick, fill=blue!20] (0,0) rectangle (1,0.8);
+\draw[thick, fill=blue!20] (1,0) rectangle (4,0.8);
+\node (a1) at (0.5,0.4) {1};
+\node (an) at (2.5,0.4) {N};
+\node[above] at (0.5,0.8) {\scriptsize MSB};
+\node[above] at (2.5,0.8) {\scriptsize LSB};
+
+% Coordinate nodes at bottom center of A rectangles
+\coordinate (a1bottom) at (0.5,0);
+\coordinate (anbottom) at (2.5,0);
+
+% Label B at top (centered)
+\node[above] at (7,1) {$B$};
+
+% Second operand B (right rectangle)
+% 1 bit MSB on left, N bits LSB on right
+\draw[thick, fill=green!20] (5,0) rectangle (6,0.8);
+\draw[thick, fill=green!20] (6,0) rectangle (9,0.8);
+\node (b1) at (5.5,0.4) {1};
+\node (bn) at (7.5,0.4) {N};
+\node[above] at (5.5,0.8) {\scriptsize MSB};
+\node[above] at (7.5,0.8) {\scriptsize LSB};
+
+% Coordinate nodes at bottom center of B rectangles
+\coordinate (b1bottom) at (5.5,0);
+\coordinate (bnbottom) at (7.5,0);
+
+% Computational graph nodes
+node[circle, draw, thick, minimum size=1cm, fill=orange!30] (mulnn) at (1.5,-1.6) {Mul $N{\times}N$};
+node[circle, draw, thick, minimum size=1cm, fill=purple!20] (andn1) at (4,-1.6) {And$N$};
+node[circle, draw, thick, minimum size=1cm, fill=purple!20] (andn2) at (6.5,-1.6) {And$N$};
+node[circle, draw, thick, minimum size=1cm, fill=purple!20] (and1) at (9,-1.6) {And$1$};
+
+% Connections from operands to computational nodes
+% A_N and B_N to Mul NxN
+\draw[->, thick] (anbottom) -- (mulnn);
+\draw[->, thick] (bnbottom) -- (mulnn);
+
+% B_N and A_1 to AndN (andn1)
+\draw[->, thick] (bnbottom) -- (andn1);
+\draw[->, thick] (a1bottom) -- (andn1);
+
+% A_N and B_1 to AndN (andn2)
+\draw[->, thick] (anbottom) -- (andn2);
+\draw[->, thick] (b1bottom) -- (andn2);
+
+% A_1 and B_1 to And1
+\draw[->, thick] (a1bottom) -- (and1);
+\draw[->, thick] (b1bottom) -- (and1);
+
+% Addition node for combining two AndN outputs
+node[circle, draw, thick, minimum size=0.8cm, fill=cyan!30, below=0.2cm of andn1, xshift=1.25cm] (add) {Add$N$};
+
+% Adder Tree bounding box - centered and spanning the width of both rectangles
+node[draw, thick, fill=teal!10, minimum width=9.5cm, minimum height=1.9cm] (addertree) at (4.5,-5.1) {};
+node[anchor=north west] at (0,-4.35) {Adder Tree};
+
+% Inside Adder Tree: three stacked rectangles showing shift and data portions (right-aligned)
+% All rectangles end at x=8, widths proportional to bit counts
+% P1: 2N bits, P2+P3: 2N+1 bits, P4: 2N+1 bits
+% Using proportional widths: P1 slightly narrower than P2+P3 and P4
+
+% P1: 2N+1 bits, with 1-bit yellow extension on the left - divided into 1 + N + N
+draw[thick, fill=yellow!30] (5,-4.4) rectangle (5.1,-4.7); % 1-bit yellow extension on left (MSB)
+draw[thick, fill=white] (5.1,-4.4) rectangle (8,-4.7);
+draw[thick] (6.55,-4.4) -- (6.55,-4.7); % Divider between N and N
+node at (5.05,-4.55) {\tiny 1};
+node at (5.825,-4.55) {\scriptsize N};
+node at (7.275,-4.55) {\scriptsize N};
+node[anchor=west] at (8.2,-4.55) {\scriptsize P1};
+
+% P2+P3 (AddN output): 2N+1 bits total, 1 bit data (white on left), 2N bits shift (gray on right)
+% Divide 2N shift into N + N
+draw[thick, fill=white] (5,-4.9) rectangle (5.1,-5.2); % Data portion (1 bit)
+draw[thick, fill=gray!40] (5.1,-4.9) rectangle (8,-5.2); % Shift portion (2N bits) on right
+draw[thick] (6.55,-4.9) -- (6.55,-5.2); % Divider in shift portion: N | N
+node at (5.05,-5.05) {\tiny 1};
+node at (5.825,-5.05) {\scriptsize N};
+node at (7.275,-5.05) {\scriptsize N};
+node[anchor=west] at (8.2,-5.05) {\scriptsize P2+P3};
+
+% Red dotted rectangle enclosing 2N bits from P1 and P2+P3
+draw[red, thick, dotted] (5.05,-4.35) rectangle (8.05,-5.25);
+
+% P4: 2N+1 bits total, N+1 bits data (white on left), N bits shift (gray on right)
+% Divide N+1 into 1 and N
+draw[thick, fill=white] (5,-5.4) rectangle (6.55,-5.7); % Data portion (N+1 bits)
+draw[thick, fill=gray!40] (6.55,-5.4) rectangle (8,-5.7); % Shift portion (N bits) on right
+draw[thick] (5.1,-5.4) -- (5.1,-5.7); % Divider in data portion: 1 | N
+node at (5.05,-5.55) {\tiny 1};
+node at (5.825,-5.55) {\scriptsize N};
+node at (7.275,-5.55) {\scriptsize N};
+node[anchor=west] at (8.2,-5.55) {\scriptsize P4};
+
+% Red dotted rectangle enclosing N LSB bits from P2+P3 and P4
+draw[red, thick, dotted] (6.5,-4.85) rectangle (8.05,-5.75);
+
+% Connections from computational nodes to addition node
+draw[->, thick] (andn1) -- (add) node[midway, right, xshift=-0.05cm, yshift=0.15cm] {P2};
+draw[->, thick] (andn2) -- (add) node[midway, left, xshift=0.05cm, yshift=0.15cm] {P3};
+
+% Connections directly to Adder Tree
+draw[->, thick] (mulnn) -- (mulnn |- addertree.north) node[near start, right] {P4};
+draw[->, thick] (add) -- (add |- addertree.north);
+draw[->, thick] (and1) -- (and1 |- addertree.north) node[near start, right] {P1};
+
+\end{tikzpicture}

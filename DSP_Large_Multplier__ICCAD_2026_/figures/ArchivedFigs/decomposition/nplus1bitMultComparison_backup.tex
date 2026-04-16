@@ -1,0 +1,242 @@
+% Combined N+1-bit multiplication comparison diagram
+\begin{tikzpicture}[
+    scale=0.85,
+    every node/.style={align=center}
+]
+
+% ============================================
+% LEFT SIDE: NMSB version (N bits are MSB)
+% ============================================
+\begin{scope}[local bounding box=left]
+% Title
+\node[font=\bfseries, above] at (2,1.3) {MSB Implementation};
+
+% Label A at top (centered)
+\node[above] at (2,1) {$A$};
+
+% First operand A
+\draw[thick, fill=blue!20] (0,0) rectangle (3,0.8);
+\draw[thick, fill=blue!20] (3,0) rectangle (4,0.8);
+\node (left_an) at (1.5,0.4) {N};
+\node (left_a1) at (3.5,0.4) {1};
+\node[above] at (1.5,0.8) {\scriptsize MSB};
+\node[above] at (3.5,0.8) {\scriptsize LSB};
+
+\coordinate (left_anbottom) at (1.5,0);
+\coordinate (left_a1bottom) at (3.5,0);
+
+% Label B at top (centered)
+\node[above] at (7,1) {$B$};
+
+% Second operand B
+\draw[thick, fill=green!20] (5,0) rectangle (8,0.8);
+\draw[thick, fill=green!20] (8,0) rectangle (9,0.8);
+\node (left_bn) at (6.5,0.4) {N};
+\node (left_b1) at (8.5,0.4) {1};
+\node[above] at (6.5,0.8) {\scriptsize MSB};
+\node[above] at (8.5,0.8) {\scriptsize LSB};
+
+\coordinate (left_bnbottom) at (6.5,0);
+\coordinate (left_b1bottom) at (8.5,0);
+
+% Addition node
+\node[circle, draw, thick, minimum size=0.7cm, fill=cyan!30, below=0.8cm of left_andn1, xshift=1.25cm] (left_add) {\small Add$N$};
+
+% Shift operation nodes
+\node[circle, draw, thick, minimum size=0.7cm, fill=pink!30, below=0.8cm of left_mulnn] (left_shift2) {\small $<<2$};
+\node[circle, draw, thick, minimum size=0.7cm, fill=pink!30, below=0.8cm of left_add] (left_shift1) {\small $<<1$};
+
+% Adder Tree bounding box
+\node[draw, thick, fill=teal!10, minimum width=9.5cm, minimum height=2.2cm] (left_addertree) at (4.5,-9.5) {};
+\node[anchor=north west, font=\small\bfseries] at (0,-8.5) {Adder Tree};
+
+% Annotation: 2N+1-bit adder needed
+\node[font=\small\bfseries, red] at (4.5,-11.2) {Requires 2N+1-bit Adder};
+
+% Inside Adder Tree
+\draw[thick, fill=white] (7.9,-8.8) rectangle (8,-9.2);
+\node at (7.95,-9) {\tiny 1};
+\node[anchor=west, font=\scriptsize] at (8.2,-9) {P1};
+
+\draw[thick, fill=yellow!30] (5,-9.4) rectangle (6.5,-9.8);
+\draw[thick, fill=white] (6.5,-9.4) rectangle (7.9,-9.8);
+\draw[thick, fill=gray!40] (7.9,-9.4) rectangle (8,-9.8);
+\node at (5.75,-9.6) {\scriptsize N+1};
+\node at (7.2,-9.6) {\scriptsize N};
+\node at (7.95,-9.6) {\tiny 1};
+\node[anchor=west, font=\scriptsize] at (8.2,-9.6) {P2+P3};
+
+\draw[red, thick, dotted] (7.85,-8.75) rectangle (8.05,-9.85);
+
+\draw[thick, fill=white] (5,-10) rectangle (7.8,-10.4);
+\draw[thick, fill=gray!40] (7.8,-10) rectangle (8,-10.4);
+\draw[thick] (6.4,-10) -- (6.4,-10.4);
+\draw[thick] (7.9,-10) -- (7.9,-10.4);
+\node at (5.7,-10.2) {\scriptsize N};
+\node at (7.1,-10.2) {\scriptsize N};
+\node at (7.85,-10.2) {\tiny 1};
+\node at (7.95,-10.2) {\tiny 1};
+\node[anchor=west, font=\scriptsize] at (8.2,-10.2) {P4};
+
+\draw[red, thick, dotted] (7.75,-9.35) rectangle (8.05,-10.45);
+
+% Connections to shared computational nodes (will be defined later)
+\draw[->, thick] (left_anbottom) -- ++(0,-1.7) coordinate (left_an_to_shared);
+\draw[->, thick] (left_bnbottom) -- ++(0,-1.7) coordinate (left_bn_to_shared);
+\draw[->, thick] (left_a1bottom) -- ++(0,-1.7) coordinate (left_a1_to_shared);
+\draw[->, thick] (left_b1bottom) -- ++(0,-1.7) coordinate (left_b1_to_shared);
+
+% Connections from shared nodes to rest of left implementation
+\draw[->, thick] (left_mulnn) -- (left_shift2);
+\draw[->, thick] (left_andn1) -- (left_add);
+\draw[->, thick] (left_andn2) -- (left_add);
+\draw[->, thick] (left_add) -- (left_shift1);
+\draw[->, thick] (left_shift2) -- (left_shift2 |- left_addertree.north);
+\draw[->, thick] (left_shift1) -- (left_shift1 |- left_addertree.north);
+
+\coordinate (left_and1_out) at (left_and1 |- left_addertree.north);
+\draw[->, thick] (left_and1_out) -- (left_and1_out |- left_addertree.north);
+
+\end{scope}
+
+% ============================================
+% RIGHT SIDE: NLSB version (N bits are LSB)
+% ============================================
+\begin{scope}[xshift=12cm, local bounding box=right]
+% Title
+\node[font=\bfseries, above] at (2,1.3) {LSB Implementation (Proposed)};
+
+% Label A at top
+\node[above] at (2,1) {$A$};
+
+% First operand A
+\draw[thick, fill=blue!20] (0,0) rectangle (1,0.8);
+\draw[thick, fill=blue!20] (1,0) rectangle (4,0.8);
+\node (right_a1) at (0.5,0.4) {1};
+\node (right_an) at (2.5,0.4) {N};
+\node[above] at (0.5,0.8) {\scriptsize MSB};
+\node[above] at (2.5,0.8) {\scriptsize LSB};
+
+\coordinate (right_a1bottom) at (0.5,0);
+\coordinate (right_anbottom) at (2.5,0);
+
+% Label B at top
+\node[above] at (7,1) {$B$};
+
+% Second operand B
+\draw[thick, fill=green!20] (5,0) rectangle (6,0.8);
+\draw[thick, fill=green!20] (6,0) rectangle (9,0.8);
+\node (right_b1) at (5.5,0.4) {1};
+\node (right_bn) at (7.5,0.4) {N};
+\node[above] at (5.5,0.8) {\scriptsize MSB};
+\node[above] at (7.5,0.8) {\scriptsize LSB};
+
+\coordinate (right_b1bottom) at (5.5,0);
+\coordinate (right_bnbottom) at (7.5,0);
+
+% Addition node
+\node[circle, draw, thick, minimum size=0.7cm, fill=cyan!30, below=0.8cm of andn1, xshift=1.25cm] (add) {\small Add$N$};
+
+% Shift operation nodes
+\node[circle, draw, thick, minimum size=0.7cm, fill=pink!30, below=0.8cm of add] (shiftn) {\small $<<N$};
+\node[circle, draw, thick, minimum size=0.7cm, fill=pink!30, below=0.8cm of and1] (shift2n) {\small $<<2N$};
+
+% Adder Tree bounding box
+\node[draw, thick, fill=green!10, minimum width=9.5cm, minimum height=2.2cm] (right_addertree) at (4.5,-9.5) {};
+\node[anchor=north west, font=\small\bfseries] at (0,-8.5) {Adder Tree};
+
+% Annotation: N+1-bit adder needed (highlighted in green)
+\node[font=\small\bfseries, green!60!black] at (4.5,-11.2) {Requires N+1-bit Adder};
+
+% Inside Adder Tree
+\draw[thick, fill=yellow!30] (5,-8.8) rectangle (5.1,-9.2);
+\draw[thick, fill=white] (5.1,-8.8) rectangle (8,-9.2);
+\draw[thick] (6.55,-8.8) -- (6.55,-9.2);
+\node at (5.05,-9) {\tiny 1};
+\node at (5.825,-9) {\scriptsize N};
+\node at (7.275,-9) {\scriptsize N};
+\node[anchor=west, font=\scriptsize] at (8.2,-9) {P1};
+
+\draw[thick, fill=white] (5,-9.4) rectangle (5.1,-9.8);
+\draw[thick, fill=gray!40] (5.1,-9.4) rectangle (8,-9.8);
+\draw[thick] (6.55,-9.4) -- (6.55,-9.8);
+\node at (5.05,-9.6) {\tiny 1};
+\node at (5.825,-9.6) {\scriptsize N};
+\node at (7.275,-9.6) {\scriptsize N};
+\node[anchor=west, font=\scriptsize] at (8.2,-9.6) {P2+P3};
+
+\draw[red, thick, dotted] (5.05,-8.75) rectangle (8.05,-9.85);
+
+\draw[thick, fill=white] (5,-10) rectangle (6.55,-10.4);
+\draw[thick, fill=gray!40] (6.55,-10) rectangle (8,-10.4);
+\draw[thick] (5.1,-10) -- (5.1,-10.4);
+\node at (5.05,-10.2) {\tiny 1};
+\node at (5.825,-10.2) {\scriptsize N};
+\node at (7.275,-10.2) {\scriptsize N};
+\node[anchor=west, font=\scriptsize] at (8.2,-10.2) {P4};
+
+\draw[red, thick, dotted] (6.5,-9.35) rectangle (8.05,-10.45);
+
+% Connections to shared computational nodes
+\draw[->, thick] (right_anbottom) -- ++(0,-1.7) coordinate (right_an_to_shared);
+\draw[->, thick] (right_bnbottom) -- ++(0,-1.7) coordinate (right_bn_to_shared);
+\draw[->, thick] (right_a1bottom) -- ++(0,-1.7) coordinate (right_a1_to_shared);
+\draw[->, thick] (right_b1bottom) -- ++(0,-1.7) coordinate (right_b1_to_shared);
+
+% Connections from shared nodes to rest of right implementation
+\draw[->, thick] (right_andn1) -- (right_add);
+\draw[->, thick] (right_andn2) -- (right_add);
+\draw[->, thick] (right_and1) -- (right_shift2n);
+\draw[->, thick] (right_add) -- (right_shiftn);
+\draw[->, thick] (right_shiftn) -- (right_shiftn |- right_addertree.north);
+\draw[->, thick] (right_shift2n) -- (right_shift2n |- right_addertree.north);
+
+\coordinate (right_mulnn_out) at (right_mulnn |- right_addertree.north);
+\draw[->, thick] (right_mulnn_out) -- (right_mulnn_out |- right_addertree.north);
+
+\end{scope}
+
+% ============================================
+% SHARED COMPUTATIONAL NODES (in the middle)
+% ============================================
+% Calculate middle position between left and right
+\coordinate (middle) at ($(left.east)!0.5!(right.west)$);
+
+% Computational graph nodes shared by both implementations
+\node[circle, draw, thick, minimum size=0.9cm, fill=orange!30] (mulnn) at ($(middle)+(0,-2.5)$) {\small Mul $N{\times}N$};
+\node[circle, draw, thick, minimum size=0.9cm, fill=purple!20] (andn1) at ($(middle)+(2.5,-2.5)$) {\small And$N$};
+\node[circle, draw, thick, minimum size=0.9cm, fill=purple!20] (andn2) at ($(middle)+(5,-2.5)$) {\small And$N$};
+\node[circle, draw, thick, minimum size=0.9cm, fill=purple!20] (and1) at ($(middle)+(7.5,-2.5)$) {\small And$1$};
+
+% Define aliases for consistency
+\coordinate (left_mulnn) at (mulnn);
+\coordinate (left_andn1) at (andn1);
+\coordinate (left_andn2) at (andn2);
+\coordinate (left_and1) at (and1);
+
+\coordinate (right_mulnn) at (mulnn);
+\coordinate (right_andn1) at (andn1);
+\coordinate (right_andn2) at (andn2);
+\coordinate (right_and1) at (and1);
+
+% Connections from LEFT operands to shared nodes
+\draw[->, thick] (left_an_to_shared) -- (mulnn);
+\draw[->, thick] (left_bn_to_shared) -- (mulnn);
+\draw[->, thick] (left_bn_to_shared) -- (andn1);
+\draw[->, thick] (left_a1_to_shared) -- (andn1);
+\draw[->, thick] (left_an_to_shared) -- (andn2);
+\draw[->, thick] (left_b1_to_shared) -- (andn2);
+\draw[->, thick] (left_a1_to_shared) -- (and1);
+\draw[->, thick] (left_b1_to_shared) -- (and1);
+
+% Connections from RIGHT operands to shared nodes
+\draw[->, thick] (right_an_to_shared) -- (mulnn);
+\draw[->, thick] (right_bn_to_shared) -- (mulnn);
+\draw[->, thick] (right_bn_to_shared) -- (andn1);
+\draw[->, thick] (right_a1_to_shared) -- (andn1);
+\draw[->, thick] (right_an_to_shared) -- (andn2);
+\draw[->, thick] (right_b1_to_shared) -- (andn2);
+\draw[->, thick] (right_a1_to_shared) -- (and1);
+\draw[->, thick] (right_b1_to_shared) -- (and1);
+
+\end{tikzpicture}

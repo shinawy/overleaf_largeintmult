@@ -1,0 +1,7 @@
+\subsection{Fast Pipelined Combinational Logic} \label{sec_fast_pipelined_comb_logic}
+Wide combinational logic paths can dominate the critical path in large multipliers.
+Therefore, we pipeline the logic into smaller segments synchronized by registers to achieve high throughput.
+Empirically, we observe a frequency drop when the segment width exceeds 64 bits.
+The design is configurable so the base logic width can be selected to tradeoff between depth, latency, and timing.
+We support two strategies for this:
+Lockstep pipelining synchronizes all segments before forwarding them while the Interleaved pipelining allows segments to proceed without synchronization.

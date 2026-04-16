@@ -1,0 +1,138 @@
+\section{ArithV Language}
+
+\todo[caption=Outline]{
+    \begin{itemize}
+        \item Overview of the ArithV language and its design principles. Why better than Verilog? Why not use an existing high-level synthesis language?
+         \item Explanation of the language's syntax and semantics, including how it abstracts arithmetic operations and maps them to hardware constructs.
+        \item Compiler and optimization passes that transform the high-level ArithV code into efficient hardware implementations.
+         \item Examples of ArithV code and how it maps to hardware constructs.
+    \end{itemize}
+}
+\subsection{Overview}
+ArithV language is the abstraction used in this project to represent arithmetic operations.
+The language is designed to be untimed, and simple to use while putting the burden on the compilation phase to optimize the code and on the hardware generation phase to generate efficient hardware.
+The language supports basic arithmetic operations such as addition, subtraction, multiplication, and bitwise operations.
+It also operations such as concatenation, slicing, and shifting. 
+The primitive MACC that maps directly to hardware primitives such as DSP blocks is the main focus of this language.
+If the multiplication operation matches the size of the DSP block, it is marked as a primitive multiplication operation by the optimization passes of the compiler, allowing for direct instantiation of the DSP block in the generated hardware.
+The language is also designed to be functional, allowing for the definition of modules that can be reused and composed to create more complex designs.
+Each module has a set of input and output ports, and the body of the module consists of a series of operations that define the functionality of the module.
+Each module can be called within other modules, allowing for hierarchical design.
+Each block must have a mandatory TestBench subblock that tests defines the desired functionality of each output port given the input ports.
+This TestBench is consumed by the ArithV Python tester to verify the correctness on the software level.
+It is also used to generate the hardware testbench for each module. 
+The language also supports further fine-grained control over the type of operations used in the design, such as specifying whether to use signed or unsigned operations, and whether to use lockstep style or interleaved style for combinational operations, i.e. additions. 
+To illustrate, the difference between lockstep and interleaved styles, consider the addition of three operands A, B, and C.
+In lockstep style, the addition is performed in two stages: first, A and B are added together, and then the result is added to C.
+In interleaved style, the partial output from adding A, and B is immediately added to the corresponding part in C, allowing for potentially faster computation by reducing the overall latency of the addition operation.
+
+
+% \inputminted{arithvlexer.py:ArithVLexer}{arithvfiles/test_arithvaddertree.arithv}
+
+
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{minipage}{\textwidth}
+\arithvinputlisting{arithvfiles/test_arithvaddertree.arithv}
+\end{minipage}
+}
+\caption{ArithV code example.}
+\label{lst:addertree}
+\end{figure}
+
+\subsection{Semantics and Syntax}
+The syntax of the ArithV language is designed to be simple and intuitive, allowing designers to easily express arithmetic operations without needing to worry about low-level hardware details.
+The language supports a variety. 
+
+\subsection{Interpreter and Optimization Passes}
+\todo[caption=outline]{
+    \begin{itemize}
+        \item First Optimize and output a new ArithV code that is optimized, then generate hardware from the optimized code. 
+    \end{itemize}
+}
+The ArithV compiler consists of several optimization passes that transform the high-level ArithV code into efficient hardware implementations.
+These passes transform the ArithV code into a more optimized version of the ArithV code, which is then used by the compiler generate the target hardware implementation.
+
+
+
+\noindent\textbf{DSP Block Recognition and Optimization.} \label{sec_opt_dsp}
+First, the compiler identifies multiplication operations in the ArithV code that match the size of the DSP block and marks them as primitive multiplication operations.
+This allows for direct instantiation of the DSP block in the generated hardware, ensuring efficient use of the DSP resources on the FPGA.
+The compiler also identifies opportunities for chaining DSP blocks together to create wider multipliers, as discussed in Section~\ref{sec_bg_dspblock}.
+The compiler delays the execution of add operations of the DSP block outputs to capture potential opportunities for cascading DSP blocks together, allowing for efficient use of the DSP resources and improved performance.
+It groups the multiplication operations based on their shift amounts and identifies the zero and 17-bit shift groups that can be cascaded together using the built-in cascade path of the DSP blocks, as well as the non-zero and non-17-bit shift groups that require the P-to-C path for chaining.
+It also captures the timing of the signals to ensure correct synchronization when chaining DSP blocks together, allowing for efficient use of the DSP resources and improved performance.
+Additionally, the depth of the chained DSP blocks can be configured to allow for different latency and throughput trade-offs, depending on the requirements of the design.
+Different groups of multiplication products are combined together using the appropriate adder tree structure, such as a carry-save adder tree to efficiently combine the outputs of the chained DSP blocks, while minimizing the overall latency of the addition operations.
+
+\noindent\textbf{Multiplication Operation Optimization.}
+If the multiplication operation does not match the size of the DSP block, it applies a target-specific tiling algorithm to break down the multiplication into smaller operations that can be efficiently mapped to the available hardware resources, such as DSP blocks and LUTs.
+The algorithm is described in detail in~\cite{royTileMultiplicationEfficient2014}. 
+The algorithm replaces the original multiplication operation with a call to a tiled multiplication module that implements the tiled multiplication using smaller multipliers and adders, allowing for efficient use of the available hardware resources while maintaining the functionality of the original multiplication operation.
+This can be particularly beneficial for matrix multiplication that contain large multiplications, as it allows for efficient use of the available hardware resources while maintaining high performance.
+
+
+
+\noindent\textbf{Operation Reordering and Adder Tree Optimization.}
+The compiler reorders operations in the ArithV code to improve performance and resource utilization, while ensuring that the functionality of the design is preserved.
+For example, it may reorder operations to allow for better pipelining and optimized adder tree.
+For instance, it may delay the execution of add operations to combine different add operations to a single optimized adder tree, such as discovering possibilities of carry saving and interleaved addition.
+
+\noindent\textbf{Target-Specific Optimizations.} 
+The compiler applies target-specific optimizations based on the characteristics of the target FPGA architecture.
+For example, for Xilinx UltraScale+ and Versal architectures, the compiler may optimize the use of DSP blocks by identifying opportunities for chaining. 
+For instance, the 17-bit shift in the ultrascale+ can be used to cascade two DSP blocks together without needing additional hardware for shifting, while this input shift is 24-bit in the Versal architecture. 
+That is, the compiler identifies the cascade groups based on the shift amounts and the internal right shift capabilities of the architecture. 
+
+\noindent\textbf{Loop Unrolling and Pipelining.}
+For iterative algorithms such as matrix multiplication, the compiler can unroll loops to expose more parallelism and allow for better pipelining.
+This can lead to improved performance by allowing for more operations to be executed in parallel, while also improving resource utilization by allowing for better sharing of hardware resources across iterations.
+
+\noindent\textbf{Reassigning Operations to Different Hardware Resources.}
+In software, ``reassigning'' a variable typically means overwriting a storage location (a register or a memory address): after executing an assignment, only the most recent value is considered live, and the previous value is effectively discarded.
+In hardware, however, signals do not get overwritten in time unless explicit state (registers/memories) is introduced; a combinational netlist must continuously drive every signal value, and intermediate results must remain available as long as any logic consumes them.
+Consequently, what looks like a simple overwrite in software corresponds to creating a new hardware value (a new wire/register) and updating all later uses to reference that new value.
+
+To reduce this mismatch and make ArithV code easier to write in a software-like style, the toolchain supports variable renaming as a preprocessing step.
+This pass converts ``overwriting'' source-level names into a single-assignment form by generating fresh internal names for each redefinition (e.g., $x \rightarrow x_0, x_1, \ldots$) while preserving semantics.
+With explicit, versioned values, subsequent compilation stages can safely rebind each operation instance to the most appropriate hardware resource (e.g., DSP versus LUT-based arithmetic) without ambiguity about which value is being referenced, bridging the gap between software convenience and hardware correctness constraints.
+
+
+\noindent\textbf{Accumulation to Adder Tree.}
+The compiler identifies accumulation patterns in the ArithV code, such as summing a series of products, and optimizes them by transforming the accumulation into an optimized adder tree structure.
+For example, it may transform a simple sequential accumulation into an optimized adder tree to efficiently combine the outputs of multiple operations, such as the outputs of chained DSP blocks, while minimizing the overall latency of the addition operations.
+
+
+\subsection{Arithmetic Rewrite Rules}
+
+To systematize optimization constraints, we maintain rewrite rules in a structured format (LHS $\Rightarrow$ RHS with optional conditions), as used in the \texttt{gemm\_ncubed} templates under \texttt{sections/General}.
+Table~\ref{tab:arithv-rewrite-rules} provides a compact structure to capture arithmetic identities, target-aware rewrites, and accumulation normalization patterns.
+We use left-subscript notation for bit-widths: ${}_p x$ denotes a bitvector $x$ with length $p$ bits.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Rewrite-rule structure for arithmetic operation optimization (derived from \texttt{gemm\_ncubed\_rewrite\_rules\_template.txt}).}
+\label{tab:arithv-rewrite-rules}
+\begin{tabular}{p{0.14\textwidth} p{0.33\textwidth} p{0.33\textwidth} p{0.15\textwidth}}
+\hline
+\textbf{Category} & \textbf{LHS Pattern} & \textbf{RHS Pattern} & \textbf{Condition / Note} \\
+\hline
+Identity (Add) & $\operatorname{add}({}_p a, {}_p 0)$ & ${}_p a$ & Neutral element \\
+Identity (Mul) & $\operatorname{mul}({}_p a, {}_p 1)$ & ${}_{2p} a$ & Width follows product semantics \\
+Zero Rule & $\operatorname{mul}({}_p a, {}_p 0)$ & ${}_{2p} 0$ & Annihilator \\
+Commutativity & $\operatorname{add}({}_p a, {}_p b)$ & $\operatorname{add}({}_p b, {}_p a)$ & Bidirectional ($\Leftrightarrow$) \\
+Power-of-2 Lowering & $\operatorname{mul}({}_p a, {}_p 2^k)$ & $\operatorname{shl}({}_p a, k)$ & Constant is power of 2 \\
+DSP Mapping & $\operatorname{mul}({}_p a, {}_p b)$ & $\operatorname{primmul}({}_p a, {}_p b)$ & $\texttt{fits\_in\_dsp}$ \\
+DSP MACC Fusion & $\operatorname{add}(\operatorname{mul}({}_p a, {}_p b), {}_{2p} c)$ & $\operatorname{dsp\_macc}({}_p a, {}_p b, {}_{2p} c)$ & Pattern match + legal widths \\
+Associativity & $\operatorname{add}(\operatorname{add}({}_p a, {}_p b), {}_p c)$ & $\operatorname{add}({}_p a, \operatorname{add}({}_p b, {}_p c))$ & Bidirectional ($\Leftrightarrow$) \\
+Adder-Tree Balancing & $\operatorname{add}(\operatorname{add}(\operatorname{add}(t_1,t_2),t_3),t_4)$ & $\operatorname{add}(\operatorname{add}(t_1,t_2),\operatorname{add}(t_3,t_4))$ & Depth reduction objective \\
+Accumulation Normalization & $\operatorname{set}(\operatorname{add}(\operatorname{set}(b,d),i),d)$ & $\operatorname{set}(\operatorname{add}(b,i),d)$ & Remove nested set/add form \\
+Distributivity & $\operatorname{mul}({}_p a, \operatorname{add}({}_p b, {}_p c))$ & $\operatorname{add}(\operatorname{mul}({}_p a, {}_p b),\operatorname{mul}({}_p a, {}_p c))$ & Optional; area/latency dependent \\
+\hline
+\end{tabular}
+\end{table*}
+
+\noindent
+This table is intended as a living rule catalog: each row can be refined with architecture-specific legality predicates (e.g., DSP port width limits, cascade alignment constraints, and shift-group compatibility).

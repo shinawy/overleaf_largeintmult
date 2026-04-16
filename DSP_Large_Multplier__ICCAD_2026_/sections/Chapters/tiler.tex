@@ -1,0 +1,154 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Best Base Choice Begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Optimal Base Size Choice}
+The base multiplier size strongly affects DSP usage, hierarchy depth, and latency of large multipliers.
+We evaluate candidate bases produced in Section~\ref{sec_build_base_mult}.
+% Figure~\ref{fig_dsp_waste_vs_mult_size} plots DSP waste above the theoretical minimum from Equation~\ref{eq_mul_best}.
+Bases derived by fixing the larger DSP dimension ($26$ for DSP48E2 $26\times17$) show consistently lower waste (Equation~\ref{eq_mul_best}).
+Among those candidates, the $77\times77$ base achieves the lowest waste across many sizes.
+Low DSP waste alone does not guarantee an efficient hierarchy for Karatsuba or Schoolbook decomposition.
+We therefore consider nearby sizes that improve hierarchical coverage, even if they generate slightly larger than the target.
+For example, tiling $77\times77$ toward a $1024\times1024$ target yields a largest hierarchical block of $924\times924$ and leaves two non-hierarchical rectangular regions.
+In contrast, a $43\times43$ base can reach $1032\times1032$ and thus increase the hierarchical nature for Karatsuba.
+We capture these trade-offs using a Pareto frontier analysis across targets from $160$ to $1024$ bits.
+
+% % dsp waste graph 
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=0.8\columnwidth]{figures/base_tiling/dsp_waste_vs_multiplier_side.pdf}
+%     \caption{DSP waste versus multiplier size for different base multiplier configurations.}
+%     \label{fig_dsp_waste_vs_mult_size}
+% \end{figure}
+
+
+
+The DSP cost of a fully hierarchical tiling is known once the base and the decomposition schemes are chosen.
+Let the base size be $B=nW_1+mW_2$ with $W_1=26$ and $W_2=17$ for DSP48E2.
+If the hierarchical side length is $T=2^a\times 3^b\times B$, and 
+$\text{DSP}_{\text{base}}$ is the DSP count of the base multiplier.
+The total DSP count for the hierarchical region is
+\begin{equation}
+\text{DSP}_{\text{total}} = \text{DSP}_{\text{base}} \times N_{\text{base}}
+\end{equation}
+
+where $N_{\text{base}}$ is the number of base multipliers implied by the hierarchy.
+
+\begin{equation}
+N_{\text{base}} = 
+\begin{cases}
+4^a \times 9^b & \text{(Schoolbook at all levels)} \\
+3^a \times 6^b & \text{(Karatsuba at all levels)} \\
+\text{Mixed} & \text{(Combination of schemes)}
+\end{cases}
+\end{equation}
+
+
+Figure~\ref{fig_pareto_frontier_all_configs} shows the Pareto frontier across decomposition schedules and highlights the best base per target size.
+Across the evaluated targets, $43\times43$ minimizes DSP usage when Karatsuba is preferred.
+Across the evaluated targets, $128\times128$ is often best when Schoolbook is preferred.
+
+
+
+
+% create two figures indicating pareto font
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/base_tiling/pareto_frontier_best_bases.pdf}
+    \caption{
+        Pareto frontier for all configurations.
+        The annotation shows the achieved size using the best base per target.
+    }
+    \label{fig_pareto_frontier_all_configs}
+\end{figure}
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tiler Begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tiler} \label{sec_tiler}
+Finding the optimal placement of small rectangles to tile a large rectangle is NP-complete~\cite{BeumontTilingNPComplete2002}.
+General tiling schemes suffers from two main limitations when applied to FPGA-based large multipliers:
+\begin{itemize}
+    \item They do not prioritize hierarchical regions that enable Karatsuba decomposition.
+    \item They ignore architecture specific features such as DSP cascade capabilities and efficient base sizes.
+\end{itemize}
+
+
+We evaluate two tiling methodologies.
+The first method tiles to the exact target size.
+We illustrate the exact tiling flow on a $1024\times1024$ multiplier using a $77\times77$ base.
+First step, the algorithm selects the largest hierarchical side length of the form $H=2^x\times3^y\times B$ that is less than or equal to the target.
+For $T=1024$ and $B=77$, the largest hierarchical region is $H=924$ with $x=2$ and $y=1$.
+This yields a $12\times12$ grid of base multipliers with hierarchy of a $3\times3$ grid tiled in a $2\times2$ fashion two times.
+This leaves two rectangle areas around the hierarchical region that must be tiled further.
+We explore three variants for tiling the remaining area.
+The first variant is greedily placing the same base until it does not fit, then placing DSP-fit multiplications.
+The second variant recursively tiles the remaining area using other efficient bases (e.g., $44\times44$ and $94\times94$) and small DSP-fit tiles.
+The third variant improves on this by maximizing the number of cascade-compatible connections.
+The cascade-compatible variant yields the best DSP usage for the remaining area among the three variants($464$ compared to $516$ in the first variant and $507$ in the second variant).
+In the three variants, each candidate placement is scored by DSP count and by estimated LUT/FF overhead for accumulation.
+Cascade-compatible connections are preferred because they reduce LUT-based shifting and addition operations.
+Figure~\ref{fig_tiling1024_recurmax} shows the recursive approach without cascade consideration, the rest is omitted for brevity.
+Then we compare to the second method (non-exact tiling) that may tile to slightly larger than the target to maximize the generated hierarchical area, then we choose the best method of the two.
+
+
+\begin{figure}[t]
+     \centering
+     \includegraphics[width=\columnwidth]{figures/tiling/tile1024RecurMax.pdf}
+     \caption{Recursive tiling approach without cascade consideration for a $1024\times1024$ multiplier using $516$ DSP48E2 slices. The purple boxes highlight remaining rectangular  regions after hierarchical tiling.}
+     \label{fig_tiling1024_recurmax}
+\end{figure}
+
+
+% \begin{figure}[t]
+%      \centering
+%     %  \begin{subfigure}{0.475\columnwidth}
+%      \begin{subfigure}{0.9\columnwidth}
+%          \centering
+%          \includegraphics[width=\textwidth]{figures/tiling/tile1024Greedy.pdf}
+%          \caption{Greedy approach.}
+%          \label{fig_tile1024_greedy}
+%      \end{subfigure}
+%      \hfill
+
+%     %  \begin{subfigure}{0.475\columnwidth}
+%      \begin{subfigure}{0.9\columnwidth}
+%          \centering
+%          \includegraphics[width=\textwidth]{figures/tiling/tile1024RecurMax.pdf}
+%          \caption{Recursive approach without cascade consideration.}
+%          \label{fig_tiling1024_recurmax}
+%      \end{subfigure}
+%      \hfill 
+
+%     %  \begin{subfigure}{0.475\columnwidth}
+%      \begin{subfigure}{0.9\columnwidth}
+%          \centering
+%          \includegraphics[width=\textwidth]{figures/tiling/tile1024max17.pdf}
+%          \caption{Recursive approach with cascade consideration.}
+%          \label{fig_tiling1024_max}
+%      \end{subfigure}
+%      \hfill 
+
+
+%     \caption{
+%         Different tiling schemes for a $1024\times1024$ multiplier.
+%         The greedy approach uses $507$ DSP48E2 slices.
+%         The recursive approach without cascade uses $516$ DSP48E2 slices.
+%         The recursive approach with cascade uses $464$ DSP48E2 slices.
+%     }
+%     \label{fig_tiling1024x1024}
+    
+% \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tiler end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
