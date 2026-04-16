@@ -1,0 +1,85 @@
+% Cascade Comparison - Two DSP Slices
+\begin{tikzpicture}
+
+% Define colors once
+\colorlet{dspblue}{orange!30}
+\definecolor{regcolor}{RGB}{150,200,150}
+\definecolor{cyanblue}{RGB}{100,180,220}
+
+% External input nodes (above the DSP slices)
+\fill (1,8.0) circle (2pt);
+\node[above, font=\small\bfseries] at (1,8.0) {$K_H$};
+\fill (2,8.0) circle (2pt);
+\node[above, font=\small\bfseries] at (2,8.0) {$M$};
+\fill (6,8.0) circle (2pt);
+\node[above, font=\small\bfseries] at (6,8.0) {$K_L$};
+
+% Registers for S2 inputs
+% Cyan register for K_H to S2.A
+\node[draw, thick, fill=cyanblue, minimum width=0.6cm, minimum height=0.3cm] (regKH) at (1,7.3) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regKH.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+% Green register after K_H
+\node[draw, thick, fill=regcolor, minimum width=0.6cm, minimum height=0.3cm] (regKHCyan) at (1,6.9) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regKHCyan.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+
+% Cyan register for M to S2.B
+\node[draw, thick, fill=cyanblue, minimum width=0.6cm, minimum height=0.3cm] (regM) at (2,7.3) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regM.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+% Green register after M
+\node[draw, thick, fill=regcolor, minimum width=0.6cm, minimum height=0.3cm] (regMCyan) at (2,6.9) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regMCyan.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+
+% Connections from inputs to green registers
+\draw (1,8.0) -- (1,7.45);
+\draw (2,8.0) -- (2,7.45);
+
+% Connections from green registers to cyan registers
+\draw (1,7.15) -- (1,7.05);
+\draw (2,7.15) -- (2,7.05);
+
+% Connections from cyan registers to S2 A and B ports
+\draw (1,6.75) -- (1,6.5);
+\draw (2,6.75) -- (2,6.5);
+
+% First DSP Slice (S2 - left)
+\begin{scope}
+\input{dsp_slice}
+\node[font=\bfseries] at (3.6,6.3) {S2};
+\end{scope}
+
+% Connections from external inputs to S1 (K_L to S1.A, M to S1.B)
+\draw (6,8.0) -- (6,6.5);
+\draw (2,8.0) -- (2,7.8) -- (7,7.8) -- (7,6.5);
+
+% Second DSP Slice (S1 - right) - shifted right
+\begin{scope}[xshift=5cm]
+\input{dsp_slice}
+\node[font=\bfseries] at (3.6,6.3) {S1};
+\end{scope}
+
+% Extract circle below S1.P
+\node[draw, thick, circle, minimum size=0.8cm, font=\tiny] (extract) at (7.15,-0.2) {ExSRn};
+\draw (7.15,0.7) -- (extract.north);
+
+% Connection from Extract to S2.C with right-angled path (between slices)
+\draw[very thick, color=cyanblue] (extract.west) -- (4.5,-0.2) -- (4.5,6.8) -- (3,6.8) -- (3,6.57);
+
+% Green register below Extract
+\node[draw, thick, fill=regcolor, minimum width=0.6cm, minimum height=0.3cm] (regExtract) at (7.15,-1.1) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regExtract.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+\draw (extract.south) -- (regExtract.north);
+
+% Cyan register after Extract register
+\node[draw, thick, fill=cyanblue, minimum width=0.6cm, minimum height=0.3cm] (regExtractCyan) at (7.15,-1.5) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regExtractCyan.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+\draw (regExtract.south) -- (regExtractCyan.north);
+
+% Wide box for K×M output (covering both slices)
+\node[draw, thick, minimum width=9cm, minimum height=0.6cm, font=\large] (kmbox) at (4.5,-2.1) {$K\times M$};
+\draw (regExtractCyan.south) -- (7.15,-1.8);
+\draw (2.15,0.7) -- (2.15,-1.8);
+
+% Connection from S1.PCOUT to S2.PCIN (green, goes down, left around S2, up, then right to PCIN)
+\draw[very thick, color=regcolor] (6.85,0.63) -- (6.85,0.35) -- (-0.5,0.35) -- (-0.5,4.0) -- (-0.07,4.0);
+
+\end{tikzpicture}
