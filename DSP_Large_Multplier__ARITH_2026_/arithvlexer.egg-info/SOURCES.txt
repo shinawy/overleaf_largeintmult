@@ -1,0 +1,8 @@
+arithvlexer.py
+setup.py
+arithvlexer.egg-info/PKG-INFO
+arithvlexer.egg-info/SOURCES.txt
+arithvlexer.egg-info/dependency_links.txt
+arithvlexer.egg-info/entry_points.txt
+arithvlexer.egg-info/requires.txt
+arithvlexer.egg-info/top_level.txt

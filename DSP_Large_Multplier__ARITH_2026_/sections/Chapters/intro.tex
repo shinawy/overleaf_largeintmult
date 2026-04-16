@@ -1,0 +1,39 @@
+\section{Introduction}
+While multiplication is conceptually simple, implementing it efficiently becomes difficult at large sizes.
+Large-integer multiplication is especially important in cryptography, where common sizes include 160--512 bits for Elliptic Curve Cryptography (ECC) and 1024--4096 bits for RSA~\cite{patelComparisonKeySize2023}.
+These sizes exceed the native wordlengths of typical hardware resources and must be built from smaller primitives.
+% Squaring a large integer is also a common operation in many applications; for example, in RSA, approximately 22.2\% of the operations are squaring operation~\cite{juCompilerLikeFrameworkOptimizing2024}.
+% Squaring is the specific instance of multiplication where the multiplier and the multiplicand are identical.
+% Although squaring can be performed using general multiplication hardware, specialized squarers exploiting this property can offer significant advantages in terms of resource efficiency.
+
+Field-Programmable Gate Arrays (FPGAs) offer a flexible architecture that can be used to implement a variety of applications in domains such as image processing
+~\cite{sarrafzadehImageRestorationFPGA2003}, and cryptography~\cite{prasannaFHEPerformanceModelingFPGA2021}.
+Because multiplication is a common application and expensive in LUT fabric, modern FPGAs provide dedicated DSP blocks that deliver higher throughput and better area/energy efficiency than LUT-only implementations.
+DSP blocks also support common arithmetic patterns (e.g. MAC), but achieving an optimal balance of DSPs and LUTs for large, structured arithmetic remains challenging.
+
+% FPGAs have two main resources for computing functions, Look-Up Tables (LUTs) and Digital Signal Processing (DSP) blocks.
+% While LUT-based architecture provides flexibility, certain functions appear frequently across various applications. 
+% Arithmetic operators, for instance, can be inefficient when implemented using LUTs due to significant area and power consumption.
+% To address this issue, FPGAs have introduced hard blocks, like DSP blocks, in their architectures, which provide optimized implementations of common functions, making them more efficient than their corresponding LUT-based implementation.
+% However, these DSP blocks are a scarse resource compared to LUTs. 
+% For example, the Alveo U250 FPGA has only around 12K DSP slices, but has 1728K LUTs as shown in \cite{xilinxU250DataSheet2023}. 
+% As a result, applications must make trade-offs between using fast but limited DSP blocks or slow but widespread LUTs.
+
+Large multipliers are typically constructed by decomposing operands into smaller tiles that match the underlying DSP wordlengths.
+Schoolbook decomposition forms all partial products and combines them with shifts and additions, while Karatsuba~\cite{karatsubaOriginalPaper} reduces the number of multiplications by trading multipliers for additions (Section~\ref{sec_background}).
+For extremely large sizes, FFT~\cite{yapFFTquickmul2000} and NTT~\cite{weemsNTTHighPrecisionInteger2011} based methods are also possible.
+
+However, effective decomposition on FPGAs must be aware of the underlying architecture: DSP primitives are often asymmetric and non-power-of-2, signed/unsigned handling affects packing, and achieving high frequency requires respecting DSP pipeline constraints.
+FPGAs also expose structure such as cascade paths that can improve both performance and resource usage when exploited.
+This paper addresses large integer multiplication in an architecture-aware manner, enabling both efficient base multipliers and scalable large multipliers on FPGAs.
+
+The main contributions of this paper are: 
+\begin{enumerate}
+    \item An architecture-aware base multiplier that maps efficiently to FPGA DSP blocks while achieving high frequency and low resource usage.
+    \item A comparison against a vendor $64\times64$ IP multiplier.
+    \item Automated construction of large multipliers from the proposed base design using Schoolbook and Karatsuba decompositions, with FPGA-aware pipelining and mapping.
+    \item Evaluation across operand sizes and base sizes, including a $1024\times1024$-bit design compared against an HLS implementation and the approach in~\cite{zhangIMpressLargeInteger2022} and~.
+\end{enumerate}
+
+Overall, our approach achieves up to 56\% higher frequency while using about 17\% fewer DSP blocks compared to prior approaches.
+

@@ -1,0 +1,5 @@
+Primitive Strategy,Size,LUTs,FFs,DSPs,Latency (Cycles)
+One group,78,537,1051,14,28
+One group,44,78,323,5,9
+Multi-group,78,429,1386,14,14
+Multi-group,44,105,334,5,8

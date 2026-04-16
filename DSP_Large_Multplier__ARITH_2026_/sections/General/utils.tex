@@ -1,0 +1,138 @@
+\newcommand{\scalefig}{0.5}
+
+
+% this command takes the language as an argument
+% the default is Bash
+% it sets the other format to be as described in the function
+
+% List of possible programming languages to use
+% ABAP, ACSL, Ada, Algol, Ant, Assembler, Awk, bash, Basic, C#, C++, C, Caml, Clean, Cobol, Comal, csh, Delphi, Eiffel, Elan, erlang, Euphoria, Fortran4, GCL, Go (golang), Gnuplot, Haskell, HTML, IDL, inform, Java, JVMIS, ksh, Lisp, Logo, Lua, make, Mathematica1, Matlab, Mercury, MetaPost, Miranda, Mizar, ML, Modelica, Modula-2, MuPAD, NASTRAN, Oberon-2, Objective C , OCL, Octave, Oz, Pascal, Perl, PHP, PL/I, Plasm, POV, Prolog, Promela, Python, R, Reduce, Rexx, RSL, Ruby, S, SAS, Scilab, sh, SHELXL, Simula, SQL, tcl, TeX, VBScript, Verilog, VHDL, VRML, XML, XSLT.
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\newcommand{\setCustomListing}[1]{
+
+    
+    \lstset{
+      language={#1},
+      basicstyle={\small},
+      identifierstyle={\small},
+      commentstyle={\small\itshape\color{dkgreen}},
+      keywordstyle={\small\bfseries\color{blue}},
+      ndkeywordstyle={\small},
+      stringstyle={\small\ttfamily},
+      frame={tb},
+      breaklines=true,
+      columns=[l]{fullflexible},
+      numbers=left,
+      xrightmargin=0em,
+      xleftmargin=3em,
+      numberstyle={\scriptsize},
+      stepnumber=1,
+      numbersep=1em,
+      lineskip=-0.5ex,
+    }
+
+
+
+}
+
+%% setCustomListing Command End
+
+%% ArithV Language Definition Begin %%
+\lstdefinelanguage{ArithV}{
+  keywords=[1]{input, output, variable, TestBench, Module},  % Type keywords
+  keywords=[2]{Add, Sub, Mul, Shl, Shr, And, Or, Xor, Not, Concat, Slice},  % Operation keywords
+  keywords=[3]{is_signed, op_mode},  % Attribute keywords
+  sensitive=true,
+  comment=[l]{\#},
+  morestring=[b]",
+  morestring=[b]',
+}
+
+\definecolor{arithvpurple}{rgb}{0.5,0,0.5}
+\definecolor{arithvred}{rgb}{0.6,0,0}
+\definecolor{arithvorange}{rgb}{0.8,0.4,0}
+
+\lstdefinestyle{arithvstyle}{
+  language=ArithV,
+  basicstyle={\small\ttfamily},
+  identifierstyle={\small\ttfamily},
+  commentstyle={\small\itshape\color{dkgreen}},
+  keywordstyle=[1]{\small\bfseries\color{blue}},      % input, output, variable
+  keywordstyle=[2]{\small\bfseries\color{arithvpurple}},  % Operations
+  keywordstyle=[3]{\small\color{arithvorange}},       % Attributes
+  stringstyle={\small\ttfamily\color{arithvred}},
+  frame={tb},
+  breaklines=true,
+  columns=[l]{fullflexible},
+  numbers=left,
+  xrightmargin=0em,
+  xleftmargin=3em,
+  numberstyle={\scriptsize\color{gray}},
+  stepnumber=1,
+  numbersep=1em,
+  lineskip=-0.5ex,
+  showstringspaces=false,
+  literate={×}{x}1 {→}{->}2 {←}{<-}2,
+  inputencoding=utf8,
+  extendedchars=true,
+}
+%% ArithV Language Definition End %%
+
+%% Minted ArithV Support Begin %%
+% Requires: -shell-escape flag and arithvlexer.py installed
+% To install: /opt/homebrew/opt/python@3.10/bin/python3.10 -m pip install -e . --user
+% See README_MINTED_SETUP.md for full setup instructions
+\usepackage{minted}
+
+% Use colorful style for better syntax highlighting
+\usemintedstyle{colorful}
+
+% Define colors for Pygments tokens to match lstlisting arithvstyle
+\makeatletter
+\expandafter\def\csname PYG@tok@kt\endcsname{\def\PYG@tc##1{\textcolor[rgb]{0,0,1}{##1}}}        % Keyword.Type -> blue
+\expandafter\def\csname PYG@tok@kr\endcsname{\def\PYG@tc##1{\textcolor[rgb]{0.5,0,0.5}{##1}}}   % Keyword.Reserved -> purple
+\expandafter\def\csname PYG@tok@na\endcsname{\def\PYG@tc##1{\textcolor[rgb]{0.8,0.4,0}{##1}}}   % Name.Attribute -> orange
+\expandafter\def\csname PYG@tok@s\endcsname{\def\PYG@tc##1{\textcolor[rgb]{0.6,0,0}{##1}}}      % String -> red
+\expandafter\def\csname PYG@tok@c\endcsname{\def\PYG@tc##1{\textcolor[rgb]{0,0.6,0}{\textit{##1}}}} % Comment -> green italic
+\makeatother
+
+\newmintedfile[arithvfile]{arithv}{%
+  breaklines=true,
+  fontsize=\small,
+  fontfamily=tt,
+  frame=lines,
+  linenos=true,
+  numbersep=1em,
+  xleftmargin=3em,
+  autogobble=true,
+  breaksymbolleft={},
+  breaksymbolright={},
+}
+
+\newminted{arithv}{%
+  breaklines=true,
+  fontsize=\small,
+  fontfamily=tt,
+  frame=lines,
+  linenos=true,
+  numbersep=1em,
+  xleftmargin=3em,
+  autogobble=true,
+  breaksymbolleft={},
+  breaksymbolright={},
+}
+
+% Alias for ArithV minted environments (alternative to lstinputlisting)
+\newcommand{\arithvinputlisting}[2][]{%
+  \inputminted[#1]{arithv}{#2}%
+}
+%% Minted ArithV Support End %%
+
+
+
+
+
+% \usepackage{todonotes}  % Already loaded in s0_preamble.tex
+
+% Simple colored todo in margin (supports complex content like itemize)
+\newcommand{\reptodo}[1]{\marginpar{\raggedright\textcolor{red}{\begin{minipage}{\marginparwidth}\small #1\end{minipage}}}}

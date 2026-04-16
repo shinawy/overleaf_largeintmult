@@ -1,0 +1,161 @@
+% Useful packages, sorted so packages of similar functionality are grouped together. Not all are essential to make the document work, however an effort was made to make this list as minimalistic as possible. Feel free to add your own!
+
+% Essential for making this template work are graphicx, float, tabularx, tabu, tocbibind, titlesec, fancyhdr, xcolor and tikz. 
+
+% Not essential, but you will have to debug the document a little bit when removing them are amsmath, amsthm, amssymb, amsfonts, caption, subcaption, appendix, enumitem, hyperref and cleveref.
+
+% inputenc, lipsum, booktabs, geometry and microtype are not required, but nice to have.
+
+\usepackage[utf8]{inputenc} % Allows the use of some special characters
+\usepackage{amsmath, amsthm, amssymb, amsfonts} % Nicer mathematical typesetting
+\usepackage{lipsum} % Creates dummy text lorem ipsum to showcase typsetting 
+
+\usepackage{graphicx} % Allows the use of \begin{figure} and \includegraphics
+\usepackage{float} % Useful for specifying the location of a figure ([H] for ex.)
+\usepackage{caption} % Adds additional customization for (figure) captions
+\usepackage{subcaption} % Needed to create sub-figures
+
+\usepackage{tabularx} % Adds additional customization for tables
+\usepackage{tabu} % Adds additional customization for tables
+\usepackage{booktabs} % For generally nicer looking tables
+\usepackage{array}
+\usepackage{booktabs} % For professional table formatting
+\usepackage{ragged2e} % For better text justification
+\usepackage{makecell} % For multi-line cells
+
+\usepackage{array}
+\usepackage{booktabs, multirow} % For professional table formatting
+\usepackage{siunitx} % For proper number formatting
+\usepackage{makecell} % For multi-line headers
+
+\usepackage[nottoc,numbib]{tocbibind} % Automatically adds bibliography to ToC
+\usepackage[margin = 2.5cm]{geometry} % Allows for custom (wider) margins
+\usepackage{microtype} % Slightly loosens margin restrictions for nicer spacing  
+\usepackage{titlesec} % Used to create custom section and subsection titles
+\usepackage{titletoc} % Used to create a custom ToC
+% Do NOT load the appendix package with IEEEtran; IEEEtran.cls defines \appendices itself
+% \usepackage{appendix} % Any chapter after \appendix is given a letter as index
+\usepackage{fancyhdr} % Adds customization for headers and footers
+\usepackage[shortlabels]{enumitem} % Adds additional customization for itemize. 
+
+% Add timestamp package for footer
+\usepackage{datetime}
+\newdateformat{mydate}{\THEDAY\ \monthname[\THEMONTH] \THEYEAR}
+\settimeformat{ampmtime} 
+
+\usepackage{hyperref} % Allows links and makes references and the ToC clickable
+\usepackage[noabbrev, capitalise]{cleveref} % Easier referencing using \cref{<label>} instead of \ref{}
+
+\usepackage{xcolor} % Predefines additional colors and allows user defined colors
+
+\usepackage{tikz} % Useful for drawing images and figures, used for creating the frontpage
+\usetikzlibrary{positioning} % Additional library for relative positioning 
+\usetikzlibrary{calc} % Additional library for calculating within tikz
+\usetikzlibrary{fit} % Additional library for fitting boxes around nodes
+\usetikzlibrary{arrows.meta} % Additional library for arrow styles
+\usetikzlibrary{shapes.geometric} % Additional library for geometric shapes
+
+% %!TeX TXS-program:compile = txs:///pdflatex/[--shell-escape]
+% \usepackage{minted}
+\usepackage{listings}
+
+% \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+
+% Custom simple todo commands without TikZ dependency
+\usepackage{mdframed}
+\usepackage{xkeyval}
+\makeatletter
+\define@key{todokeys}{caption}{\def\todo@caption{#1}}
+\define@boolkey{todokeys}[todo@]{inline}[true]{}  % Boolean key for inline
+\newcommand{\todo}[2][]{%
+  \def\todo@caption{TODO}% Default caption
+  \setkeys{todokeys}{#1}% Process optional arguments
+  \begin{mdframed}[backgroundcolor=orange!20,linecolor=orange,linewidth=2pt,roundcorner=5pt]%
+    \textbf{\textcolor{orange}{\todo@caption:}} #2%
+  \end{mdframed}%
+}
+\makeatother
+
+\usepackage{cite}
+\usepackage{algorithmic}
+\usepackage{array}
+
+% fixltx2e, the successor to the earlier fix2col.sty, was written by
+% Frank Mittelbach and David Carlisle. This package corrects a few problems
+% in the LaTeX2e kernel, the most notable of which is that in current
+% LaTeX2e releases, the ordering of single and double column floats is not
+% guaranteed to be preserved. Thus, an unpatched LaTeX2e can allow a
+% single column figure to be placed prior to an earlier double column
+% figure.
+% Be aware that LaTeX2e kernels dated 2015 and later have fixltx2e.sty's
+% corrections already built into the system in which case a warning will
+% be issued if an attempt is made to load fixltx2e.sty as it is no longer
+% needed.
+% The latest version and documentation can be found at:
+% http://www.ctan.org/pkg/fixltx2e
+\usepackage{fixltx2e}
+
+
+% url.sty was written by Donald Arseneau. It provides better support for
+% handling and breaking URLs. url.sty is already installed on most LaTeX
+% systems. The latest version and documentation can be obtained at:
+% http://www.ctan.org/pkg/url
+% Basically, \url{my_url_here}.
+\usepackage{url}
+
+
+% Citation package
+
+% % stfloats.sty was written by Sigitas Tolusis. This package gives LaTeX2e
+% % the ability to do double column floats at the bottom of the page as well
+% % as the top. (e.g., "\begin{figure*}[!b]" is not normally possible in
+% % LaTeX2e). It also provides a command:
+% %\fnbelowfloat
+% % to enable the placement of footnotes below bottom floats (the standard
+% % LaTeX2e kernel puts them above bottom floats). This is an invasive package
+% % which rewrites many portions of the LaTeX2e float routines. It may not work
+% % with other packages that modify the LaTeX2e float routines. The latest
+% % version and documentation can be obtained at:
+% % http://www.ctan.org/pkg/stfloats
+% % Do not use the stfloats baselinefloat ability as the IEEE does not allow
+% % \baselineskip to stretch. Authors submitting work to the IEEE should note
+% % that the IEEE rarely uses double column equations and that authors should try
+% % to avoid such use. Do not be tempted to use the cuted.sty or midfloat.sty
+% % packages (also by Sigitas Tolusis) as the IEEE does not format its papers in
+% % such ways.
+% % Do not attempt to use stfloats with fixltx2e as they are incompatible.
+% % Instead, use Morten Hogholm'a dblfloatfix which combines the features
+% % of both fixltx2e and stfloats:
+% \usepackage{stfloats}
+
+
+% % The latest version can be found at:
+% % http://www.ctan.org/pkg/dblfloatfix
+% \usepackage{dblfloatfix}
+
+
+
+
+
+
+
+% Defines a command used by tikz to calculate some coordinates for the front-page
+\makeatletter
+\newcommand{\gettikzxy}[3]{%
+  \tikz@scan@one@point\pgfutil@firstofone#1\relax
+  \edef#2{\the\pgf@x}%
+  \edef#3{\the\pgf@y}%
+}
+\makeatother
+
+% useful common commands that I use in different papers
+\input{sections/General/utils}
+
+% This is to use in figures
+\newcommand{\figurenote}[1]{\captionsetup{font=footnotesize}\caption*{\textit{Note:} #1}}
+
+
+
+
+
+

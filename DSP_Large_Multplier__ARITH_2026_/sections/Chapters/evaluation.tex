@@ -1,0 +1,153 @@
+\section{Evaluation}
+\subsection{Experiments and Results}
+% We target the AMD Alveo U250 FPGA (XCU250) for fair comparison with prior work. 
+We target the AMD Alveo U280 FPGA (XCU280), part xcu280-fsvh2892-2L-e. 
+We build large multipliers for sizes ranging from $160$ to $1024$ bits using exact tiling with $77$-bit base or non-exact tiling with $43$-bit base multipliers as discussed in Section~\ref{sec_tiler} and used $64$-bit AMD IP blocks for $1024$-bit multiplier.
+The exact tiling is the same as the non-exact tiling for the $1024$-bit multiplier using the $64$-bit AMD IP (four levels of $2\times2$ grids).
+Additionally, the $77$-bit multipliers have fewer combinations as the exact tiling result in two remaining rectangular areas that are not Karatsuba friendly.
+Wide additions are pipelined with segments of size $64$ bits using the lowest-latency mix of the lockstep and interleaved strategies described in Section~\ref{sec_fast_pipelined_comb_logic}.
+Our analysis compares these implementations of the $1024$-bit multiplier against previous work in terms of frequency, LUT utilization, and DSP utilization.
+Additionally, a unified metric that is used by IMpress~\cite{zhangIMpressLargeInteger2022} called Normalized Area will be used.
+Alveo U280 has $1082$K LUTs and $8490$ DSPs~\cite{U280SwitchingCharacteristics}, giving a ratio of around $126$ LUTs per DSP. 
+The normalized area is defined as:
+\begin{equation*}
+\text{Normalized Area} = \#\text{LUTs} + (126 \times \#\text{DSPs})
+\end{equation*}
+where each DSP is considered equivalent to 126 LUTs.
+
+Table ~\ref{table_decomposition_schemes} provides a detailed comparison of different decomposition schemes for various target and base multiplier sizes. 
+Figure~\ref{fig_bar_comparison_dsp_area} depicts the DSP and normalized area utilization for different decomposition schemes using our $77$-bit and $43$-bit base multipliers.
+Consistently across all target sizes, using more Karatsuba levels results in lower DSP utilization and overall normalized area while achieving higher frequencies most of the time.
+The $43$-bit base implementation has better hierarchical nature, and thus it is more superior when using more Karatsuba levels while the $77$-bit base multiplier generally outperforms it when using fewer Karatsuba levels.
+
+% comparing to the other work
+Table ~\ref{table_decomposition_schemes} highlights the best configuration per implementation in bold.
+Our IP-based multipliers consistently achieved significantly higher frequencies than other work but being less efficient in terms of resource utilization due to the inefficient $64$-bit IP blocks. 
+Our $43$-bit achieved the same high frequency while utilizing fewer DSPs, and using comparable LUTs.
+% Figure explanation
+Figure~\ref{fig_dualaxis_best_diff1024} compares the models with the least number of DSPs across implementations in terms of the maximum achieved frequency against their normalized area and DSP usage.
+The red points denote the DSP usage axis while the blue points denote the normalized area axis. 
+The HLS implementation achieves the lowest DSP usage but at the cost of low frequency and high normalized area.
+IMpress1 and IMpress2 achieve moderate DSP and normalized area utilization but also suffer from low frequency.
+Our IP-based implementation and  $77$-bit primitive-based implementation achieve a  higher frequency than other implementations but at the cost of higher DSP and normalized area.
+Our 43-bit primitive-based implementation (the circle) achieves the highest frequency while using moderate DSP and normalized area utilization compared to other implementations.
+It achieved around 83\% higher frequency than IMpress1 implementation while using 16\% fewer LUTs and the same number of DSPs.
+Additionally, it achieved around 56\% higher frequency than IMpress2 while using 17\% fewer DSPs and slightly less number of LUTs. 
+This shows that coupling the tiling automation with an efficient hand-crafted base primitive is key to maximizing throughput and resource efficiency.
+
+%%%%% Detailed comparison of different decomposition schemes for various multiplier sizes %%%%
+
+\begin{table}[t]
+\centering
+\caption{Detailed comparison of different decomposition schemes for various multiplier sizes. Exact tiling is used with the $77\times77$ base multiplier, while non-exact tiling is used with the $43\times43$ base multiplier. Bold indicates the best configuration per implementation.}
+\resizebox{1\linewidth}{!}{
+\begin{tabular}{cccccccc}
+\toprule
+\textbf{Target Size} & \textbf{Base} & 
+\shortstack{\textbf{\#Karat.} \\ [-0.5ex] \textbf{Levels}} & \textbf{LUTs} & \textbf{FFs} & \textbf{DSPs} & 
+\shortstack{\textbf{Max Freq.} \\ [-0.5ex] \textbf{(MHz)}} & 
+\shortstack{\textbf{Latency} \\ [-0.5ex] \textbf{(Cycles)}} \\
+\midrule
+160 & primitive & 0 & 3461 & 6112 & 61 & 830 & 35 \\
+    & 77 & 1 & 3770 & 7507 & 62 & 855 & 31 \\
+    & 43 & 2 & 5141 & 9202 & 45 & 862 & 30 \\
+\midrule
+256 & primitive & 0 & 9947 & 15710 & 161 & 760 & 64 \\
+     & 77 & 1 & 8473 & 17718 & 114 & 776 & 40 \\
+     & 43 & 2 & 10858 & 20171 & 90 & 842 & 35 \\
+\midrule
+384 & 77 & 2 & 21350 & 38330 & 279 & 583 & 56 \\
+     & 43 & 2 & 23208 & 43803 & 180 & 751 & 48 \\
+\midrule
+512 &  77 & 2 & 33122 & 61525 & 370 & 619 & 72 \\
+     & 43 & 3 & 38131 & 68870 & 270 & 629 & 60 \\
+\midrule
+1024 & 77 & 3 & 123472 & 207765 & 1220 & 478 & 123 \\
+     & 43 & 4 & 128252 & 221612 & 810 & 458 & 100 \\
+\midrule
+1024 & IP & 4 & 105717 & 169858 & 1296 & 459 & 89 \\
+\midrule 
+1024 & HLS & 6 & 165618 & N/A & 729 & 298 & 24 \\
+    & IMpress1 \cite{zhangIMpressLargeInteger2022} & N/A & 150400 & N/A & 810 & 250 & 23 \\
+     & IMpress2 \cite{zhangIMpressLargeInteger2022} & N/A & 129338 & N/A & 945 & 295 & 22 \\
+     & BeamSearch \cite{kummTilingHeuristics2020} & N/A & 133975 & N/A & 1471 & 283 & N/A \\
+\bottomrule
+\end{tabular}
+}
+\label{table_decomposition_schemes}
+\end{table}
+
+
+
+%%% figures for different implementations comparison %%%
+%Utilization in different levels of the decomposition
+\begin{figure}[t]
+     \centering
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/evaluation/bar_dsp_usage.pdf}
+         \caption{DSP Utilization with Different Decomposition Schemes}
+         \label{fig_bar_dsp_usage}
+     \end{subfigure}   
+     \hfill
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/evaluation/bar_normalized_area.pdf}
+         \caption{Normalized Area with Different Decomposition Schemes}
+         \label{fig_bar_normalized_area}
+     \end{subfigure}
+     \hfill
+     \caption{Resource Utilization for using our 77-bit base (\textsuperscript{*}) and our 43-bit base (\textsuperscript{**}) multipliers, with varying numbers of Karatsuba levels.}
+    
+      \label{fig_bar_comparison_dsp_area}
+   
+\end{figure}
+
+%%% end figure for different implementations comparison %%%
+
+
+
+
+
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/evaluation/best_scatter_dual_axis_frequency.pdf}
+\caption{Area and Performance comparison of different implementations.}
+\label{fig_dualaxis_best_diff1024}
+\end{figure}
+
+%%%
+
+\subsection{Latency Mitigation}
+As shown, our primitive-based large multipliers achieve significantly higher frequencies than prior work, but it suffers from higher latency.
+To mitigate this, we divide the wide addition to larger segment sizes (i.e. 128 bits instead of 64 bits).
+Table~\ref{table_combiner_size} shows the impact of varying the combiner segment size on the latency and performance of a $1032$-bit multiplier with a $43$-bit base multiplier.
+Increasing the segment size reduces the latency significantly, with a trade-off of slightly increased LUT usage and reduced maximum frequency.
+Using a 256-bit segment size reduces the latency from 100 to 58 cycles while still achieving higher frequency than other implementations.
+
+
+%%% table for latency mitigation %%% 
+
+\begin{table}[t]
+\centering
+\caption{Impact of combiner base size on latency and performance for 1032-bit multiplier 4-Karatsuba with 43-bit base}
+\resizebox{0.8\linewidth}{!}{
+\begin{tabular}{ccccc}
+\toprule
+\shortstack{\textbf{Combiner} \\ [-0.5ex] \textbf{Segment Size}} & \textbf{LUTs} & \textbf{FFs} & 
+\shortstack{\textbf{Max Freq.} \\ [-0.5ex] \textbf{(MHz)}} & 
+\shortstack{\textbf{Latency} \\ [-0.5ex] \textbf{(Cycles)}} \\
+\midrule
+96 & 127225 & 225670 & 379 & 88 \\
+128 & 125480 & 219590 & 359 & 70 \\
+192 & 133741 & 216455 & 368 & 66 \\
+256 & 136056 & 213833 & 348 & 58 \\
+\bottomrule
+\end{tabular}
+}
+\label{table_combiner_size}
+\end{table}
+
+

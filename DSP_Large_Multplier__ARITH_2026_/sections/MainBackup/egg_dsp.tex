@@ -1,0 +1,846 @@
+\documentclass[conference]{IEEEtran}
+% Some Computer Society conferences also require the compsoc mode option,
+% but others use the standard conference format.
+%
+% If IEEEtran.cls has not been installed into the LaTeX system files,
+% manually specify the path to it like:
+% \documentclass[conference]{../sty/IEEEtran}
+
+
+% *** Do not adjust lengths that control margins, column widths, etc. ***
+% *** Do not use packages that alter fonts (such as pslatex).         ***
+% There should be no need to do such things with IEEEtran.cls V1.6 and later.
+% (Unless specifically asked to do so by the journal or conference you plan
+% to submit to, of course. )
+
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Configuration flags
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Set to true to show compile timestamp in footer, false to hide
+\newif\ifshowcompiletime
+\showcompiletimetrue  % Change to \showcompiletimefalse to hide timestamp
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% import all packages needed for the paper
+\input{sections/General/s0_preamble}
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title and authors begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{sections/Chapters/title_authors}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title and authors end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Configure footer with timestamp
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{fancy}
+\fancyhf{} % Clear all headers and footers
+\renewcommand{\headrulewidth}{0pt} % Remove header line
+\fancyfoot[C]{\thepage} % Page number in center
+\ifshowcompiletime
+  \fancyfoot[L]{\footnotesize Compiled: \mydate\today\ at \currenttime} % Timestamp on left
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Footer configuration end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Abstract begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% As a general rule, do not put math, special symbols or citations
+% in the abstract
+\begin{abstract}
+\todo[caption=Outline, inline]{
+    \begin{itemize}
+        \item previous work are either \begin{itemize}
+            \item spatial efficient small multipliers or hierarchical not architecture aware large multipliers
+        \end{itemize}
+
+        \item hierarchical + spatial 
+        \item architecture aware
+        \item Efficient Base Multiplier generation 
+        \item Fast Wide Combinational Logic Generation 
+        \item Automation for tiling and simulation and hardware generation for each part.
+        \item Some arithmetic optimizations 
+        \item  Flow as follows: previous work then -> three main parts: base multiplier design, two-step tiling method, architecture-aware automated fast logic generation optimization + automated hardware generation
+    \end{itemize}
+}
+Large integer multiplication is critical in cryptographic applications such as Fully Homomorphic Encryption (FHE) and RSA where it represents the main step in computing the modular multiplication used to generate keys.
+Most previous work building such multipliers on FPGAs has overlooked the importance of considering the underlying architecture of the Digital Signal Processing (DSP) Blocks present in modern FPGAs. 
+These DSP blocks can operate at high frequency but present an irregular input size that must be tiled to create larger multipliers, and have complex pipelining configurations.
+In this paper, we show how an efficient base multiplier can be built using modern DSP blocks, then tiled to large sizes efficiently through an automated architecture-aware tiling and fast pipelined datapath generation, while maintaining resource efficiency and high throughput.
+We demonstrate the automation of tiling, and establish a new performance standard for large integer multipliers on FPGAs.
+\end{abstract}
+
+% no keywords
+% For peer review papers, you can put extra information on the cover
+% page as needed:
+% \ifCLASSOPTIONpeerreview
+% \begin{center} \bfseries EDICS Category: 3-BBND \end{center}
+% \fi
+%
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+\IEEEpeerreviewmaketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Abstract end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+Large integer multiplication is widely used in various applications such as digital signal processing, image processing and cryptographic applications. 
+However, these applications often require large wordlengths that exceed the capabilities of hardware resources
+Field-Programmable Gate Arrays (FPGAs) offer a flexible architecture that can be used to implement a variety of applications in domains such as image processing~\cite{sarrafzadehImageRestorationFPGA2003,zemcikHardwareAccelerationGraphics2002,lewisProceduralTextureMapping1999}, digital signal processing~\cite{tenhunenDSPSystemIntegration1993,baileyImplementingSignalProcessing2002,burlesonDSPReconfigurableComputingDigital2001}, and cryptography~\cite{leongKaratsubaBasedMontgomeryMultiplier2010,kocMontgomeryParameterSpaceArchitecture2016,jangECCAreaTimeEfficientHardware2020,jolfaeiECCHardware2020,prasannaFHEPerformanceModelingFPGA2021,savasFHEDesignImplementationEncryption2020a}. 
+
+Since multiplications are so prevalent across different applications, and would consume large numbers of the LUTs used for mapping general functions on FPGAs, DSP blocks have gained significant importance in providing high computational throughput, and have evolved to become more functional and flexible, offering high throughput and efficiency and lower silicon area than what can be achieved with LUTs.
+However, making the best use of both DSP blocks and LUTs for complex arithmetic implementations remains challenging, as mapping tools do not produce optimal mappings.
+
+% FPGAs have two main resources for computing functions, Look-Up Tables (LUTs) and Digital Signal Processing (DSP) blocks.
+% While LUT-based architecture provides flexibility, certain functions appear frequently across various applications. 
+% Arithmetic operators, for instance, can be inefficient when implemented using LUTs due to significant area and power consumption.
+% To address this issue, FPGAs have introduced hard blocks, like DSP blocks, in their architectures, which provide optimized implementations of common functions, making them more efficient than their corresponding LUT-based implementation.
+% However, these DSP blocks are a scarse resource compared to LUTs. 
+% For example, the Alveo U250 FPGA has only around 12K DSP slices, but has 1728K LUTs as shown in \cite{xilinxU250DataSheet2023}. 
+% As a result, applications must make trade-offs between using fast but limited DSP blocks or slow but widespread LUTs.
+
+In order to multiply large numbers using smaller multipliers, it is necessary to decompose them into smaller pieces that can be mapped to the wordlengths of the underlying architecture.
+The Schoolbook decomposition is a simple scheme that uses shift and add operations. 
+Comba multiplication~\cite{combaExponentiationCryptosystemsIBM1990} reorders partial products for further optimization.
+Further efficiency can be gained with Karatsuba decomposition~\cite{karatsubaOriginalPaper}, which reuses some partial products to reduce the number of multipliers needed, as illustrated in Section~\ref{sec_background}. 
+It is also possible to use the Fast-Fourier Transform (FFT) for extremely large wordlengths~\cite{yapFFTquickmul2000,emerenciaFFTMultiplyingHugeIntegers,tukeyFFTAlgorithmMachineCalculation1965}. 
+While traditional FFTs operate on complex numbers, the Number-Theoretic Transform (NTT) is sometimes preferred when performing large integer multiplication and is a special case of the FFT over a finite field $Z$~\cite{strassenNTTSchnelleMultiplikationGrosser1971,weemsNTTHighPrecisionInteger2011}.
+
+Decomposing large multipliers spatially across smaller primitives requires careful consideration.
+Many decomposition schemes have been proposed and explored mostly for symmetric power-of-2 wordlengths, while the primitives on FPGAs are both asymmetric and non-power-of-2.
+Furthermore, there are considerations relating to the mix of signed and unsigned parts and how they are mapped to the underlying architecture.
+DSP blocks also have specific pipelining arrangements that must be respected to achieve high performance.
+Additionally, the FPGA architecture offers additional possible routes for optimization including the use of the cascade paths between multipliers, that would further enhance mapping.
+This paper attempts to address this mapping in an architecture-centric manner, enabling large integer multipliers to be efficiently mapped to FPGAs.
+
+The main contributions of this paper are: 
+\begin{enumerate}
+    \item A highly efficient design of a $78\times78$ base multiplier using DSP primitives, which operates at the maximum frequency of the device and uses the minimum number of DSP slices, offering an efficient basic unit of arithmetic. 
+    \item A tool that automatically builds large integer multipliers from the proposed base multiplier from a high-level JSON description. 
+    \item A comparative analysis of our base multiplier with an existing vendor $64\times64$ IP multiplier and evaluated performance for large multipliers built using both bases, as well as against the approaches presented in~\cite{zhangIMpressLargeInteger2022}. 
+\end{enumerate}
+
+Our IP-based multiplier achieved around 45\% higher frequency than other approaches while using resources inefficiently. 
+Additionally, our Primitive-based approach achieved around 73\% higher frequency than other approaches while using around 13\% fewer DSP blocks at the expense of 5\% more LUTs. 
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Background begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background} \label{sec_background}
+
+\todo[inline]{
+    \begin{itemize}
+        \item Explain Karatsuba different variants (2x2, 3x3) and how the percentage of savings changes.
+        \item Explain N+1-bit multiplier and how mine saves more resources by having the N-bit at the LSB Side.
+        \item Maybe put a graph for the different dataflow also. 
+        \item Better graph the capture of karatsuba in tiling and schoolbook. 
+    \end{itemize}
+}
+\subsection{Decomposition Schemes}
+Due to limited hardware resources, large integer multiplications must be decomposed into smaller multiplications that can be mapped to the underlying architecture. 
+There are various decomposition schemes that can be used to achieve this, each with its own trade-offs in terms of resource usage and performance.
+\subsubsection{Schoolbook Decomposition}
+Schoolbook decomposition is a scheme that uses four ($n \times n$) multipliers to perform an ($2n \times 2n$) multiplication as in Equation \ref{schoolbook_eq}:
+We denote the two multiplier inputs $A, B$ of size $n$, where $A_H$ denotes the upper $n/2$ bits of $A$, and $A_L$ denotes the lower $n/2$ bits of $A$, and similarly for $B$. 
+\begin{equation} \label{schoolbook_eq}
+\begin{split}
+    A &= (A_H << n) + A_L\\
+    B&= (B_H<<n) + B_L\\
+    \mathit{Schoolbook}(A \times B) = & (A_L B_L) \\
+                &+ (A_L B_H + A_H  B_L) << n \\
+                &+ (A_H  B_H) << 2n
+\end{split}
+\end{equation}
+The Schoolbook decomposition method suffers from quadratic scaling complexity, for instance, requiring nine multipliers when inputs are divided into three parts. 
+These partial products need additional adder and shifter circuits for final result computation.
+
+Equation~\ref{schoolbook_eq} can be re-ordered to save an addition as follows in Equation~\ref{trick_schoolbook_eq}~\cite{zhangIMpressLargeInteger2022}. 
+
+\begin{equation} \label{trick_schoolbook_eq}
+\begin{split}
+    \mathit{Schoolbook}(A\times B) &= (A_L  B_L\ \&\ A_H B_H) \\
+                &+ (A_L  B_H + A_H  B_L) << n \\
+\end{split}
+\end{equation}
+
+\subsubsection{Karatsuba Decomposition}
+The Karatsuba algorithm~\cite{karatsubaOriginalPaper} improves upon the Schoolbook method by reducing the required multipliers from four to three, trading multiplications for more additions and subtractions, a favorable trade-off as they are cheaper than multiplication.
+In addition, one of the three multipliers is slightly larger, that is ($n\ +\ 1$) bits. 
+Equation~\ref{karatsuba_eq} illustrates how Karatsuba substitutes two smaller multipliers with one slightly larger multiplier and additional arithmetic operations.
+
+\begin{equation} \label{karatsuba_eq}
+\begin{split}
+    \mathit{Karatsuba}(A_L  B_H + A_H  B_L) = & (A_L + A_H)(B_L + B_H)\\ 
+                        &- A_L B_L  \\  
+                        &- A_H B_H 
+\end{split}
+\end{equation}
+
+The $n +1$-bit multiplier can be implemented using an $n$-bit multiplier in addition to some extra logic by dividing each operand into two parts, one is $n$ bits and the other is $1$ bit. 
+The $n$ bits can be either the most significant bits (MSB) or the least significant bits (LSB) of the operand, leading to two possible implementations as shown in Figure~\ref{fig:karatsuba_decomposition}.
+In both implementations, we replace the $n\times1$ and $1\times 1$ multiplications with simple AND gates saving three multipliers. 
+In addition, we will use a similar trick to the one used in Equation~\ref{trick_schoolbook_eq} concatenate operands that can be concatenated without overlapping bits to save an addition.
+However, placing the $n$-bit multiplier at the LSB side as in Figure~\ref{fig:karatsuba_lsb} saves more resources since it needs $n+1$-bit adder instead of a $2n+1$-bit adder as in Figure~\ref{fig:karatsuba_msb}.
+In the adder tree of Figure~\ref{fig:karatsuba_msb}, the shift is denoted by grey rectangles which indicates that the $n$ LSBs of the two partial products P2 and P3 can be concatenated since they do not overlap with any other bits in the final result.
+
+\begin{figure}[!t]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/decomposition/nplus1bitMultNMSB_standalone.pdf}
+        \caption{The $n\times n$ multiplier is used for the MSB (The adder tree needs a $2n+1$-bit adder).}
+        \label{fig:karatsuba_msb}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/decomposition/nplus1bitMultNLSB_standalone.pdf}
+        \caption{The $n\times n$ multiplier is used for the LSB (The adder tree needs a $n+1$-bit adder).}
+        \label{fig:karatsuba_lsb}
+    \end{subfigure}
+    \caption{$n+1$-bit multiplier used in Karatsuba decomposition.}
+    \label{fig:karatsuba_decomposition}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tiling Schemes} \label{sec_background_tiling}
+Having understood how to decompose multiplications, we can now discuss how to tile smaller multipliers spatially to build large ones.
+Tiling problem is NP-complete ~\cite{BeumontTilingNPComplete2002, LevinTilingNP1984, LevinTilingNP1986}, but an optimal solution can be found for small multipliers, such as $64\times64$ bits ~\cite{zipfResourceOptimalDesign2017}.
+Thus, existing research has explored algorithms to solve the general problem of tiling as in ~\cite{pascaLargeMultipliersLessDSP2009,royTileMultiplicationEfficient2014,kummTilingILP2017, kummKaratsubaRectangularMultipliers2018, kummTilingHeuristics2020}. 
+Every bit of the larger rectangle must be covered exactly once, that is, tiles can not overlap in a valid solution. 
+This introduces a tradeoff between using many small tiles that offer greater flexibility in decomposition but require extensive shift-and-add operations to combine partial results, or fewer large tiles that minimize arithmetic operations but may lead to inefficient hardware mapping.
+
+Tiling can also be interpreted graphically as a $\textit{2-D}$ grid with one operand on the $x$-axis (MSB left, LSB right) and the other on the $y$-axis (MSB top, LSB bottom), and tiles are partial products. 
+Each partial product's operands are derived by extracting the bits covered by its corresponding tile in both dimensions, while its shift size is determined by summing the LSB indices of tiles in both dimensions.
+Figure~\ref{fig_tiling8x8} demonstrates two tiling schemes for $8\times8$ multiplier through color-coded tiles, annotated shift operations (lime-green), and adders (cyan-blue). 
+Sixteen $2\times2$ multipliers require more operations but offer flexibility as in Figure~\ref{fig_tiling8_2}.
+On the other hand, four  $4\times4$ multipliers require only four additions and three shift operations. 
+Figure~\ref{fig_tiling8_4} illustrates the Schoolbook decomposition showing the shift amount for each tile (representing sub-multipliers in decomposition terminology) and the addition operations required between sub-multipliers.
+The Karatsuba decomposition's computation reuse is visually represented in Figure~\ref{fig_karatsuba_tiling} through a red line connecting sub-multipliers, denoting where a single multiplier can substitute for two while reusing existing computations~\cite{kummKaratsubaRectangularMultipliers2018}. 
+Tiling strategies can be optimized for specific hardware architectures by incorporating architectural constraints into the decomposition process. 
+For instance, AMD's UltraScale+ FPGA features $27\times18$-bit DSP multipliers; thus rectangular tiles matching these dimensions maximize DSP utilization, while significantly smaller tiles can be efficiently implemented using LUT-based logic. 
+
+
+
+\begin{figure}[t]
+     \centering
+     \begin{subfigure}{0.475\columnwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/tiling/StandardTiling_grid8tile2_circleTrue_arcFalse.pdf}
+         \caption{Tiling $8\times8$ using $2\times2$.}
+         \label{fig_tiling8_2}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}{0.475\columnwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/tiling/StandardTiling_grid8tile4_circleTrue_arcFalse.pdf}
+         \caption{Tiling $8\times8$ using $4\times4$.}
+         \label{fig_tiling8_4}
+     \end{subfigure}
+        \caption{Different tiling schemes for an $8\times8$ multiplier.}
+        \label{fig_tiling8x8}
+\end{figure}
+
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\columnwidth]{figures/tiling/StandardTiling_grid8tile4_circleTrue_arcTrue.pdf}
+\caption{Karatsuba decomposition of an $8\times8$ multiplier. The red line connects two multipliers that can be replaced by one.}
+\label{fig_karatsuba_tiling}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\subsection{DSP Block Consideration}
+\subsubsection{Overview and Applications}
+
+A DSP block is a hard block within an FPGA that contains dedicated, efficient adders and multipliers that run at high frequency. 
+Its structure and capabilities have evolved over time.
+For instance, the Xilinx Virtex 5 architecture included a 25$\times$18 multiplier and post-adder/accumulator~\cite{xilinxVirtex-5FPGA}. 
+The Xilinx Virtex 6 and 7 architectures introduced a 25-bit pre-adder while retaining the same 25$\times$18 multiplier~\cite{xilinxVirtex-6FPGA}. 
+Later, the Ultrascale(+) architectures expanded the multiplier dimensions to 27$\times$18 and increased the pre-adder wordlength to 27 bits~\cite{xilinxUltraScalePlusFPGA}.
+All these architectures have the same 48-bit post-adder wordlength. 
+The latest AMD Versal architecture improves these features by incorporating a 27$\times$24 multiplier and larger 58-bit post-adder~\cite{xilinxVersalFPGA}. 
+
+DSP blocks are versatile and multifunctional, supporting a wide range of applications.
+These include FIR filters~\cite{xilinxVirtex-4DSPExplainedFPGA}, sensor processing~\cite{boschHighPerformanceDSPSensor2016}, machine learning inference~\cite{ghiasiDSPEfficientCNNFPGA2020,ioannou2022streaming}, and radio astronomy~\cite{leongRecentApplicationsFPGA}.
+Intel FPGA DSP blocks were expanded with some floating point capabilities~\cite{pascaFloatingPointDSPBlock2015} and the current AMD Versal DSP blocks can also implement a floating point operation per block in a distinct mode.
+
+
+\subsubsection{AMD DSP Slice Architecture}
+
+The internal structure of the AMD DSP block (named a Slice) along with its control signals, enables it to perform a wide variety of expressions.
+As shown in Figure~\ref{fig_dsp48e2}, the DSP slice includes a pre-adder, a multiplier, multiplexers, and an ALU. 
+It also features control signals to define its behavior.
+For instance, the OPMODE signal determines the configuration of the WXYZ multiplexers, while the ALUMODE signal specifies the expression computed by the ALU~\cite{UltraScaleArchitectureDSP2021}. 
+Additionally, the DSP block has pipeline registers that can be toggled on or off, allowing a tradeoff between latency and throughput. 
+Enabling all four pipeline registers optimizes the multiply-accumulate operation to run at maximum frequency. 
+DSP slice inputs support cascaded operation through ports such as PCIN and ACIN of another slice in the DSP column or independent processing via global ports such as A and B, offering flexible data routing options.
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\scalefig\textwidth]{figures/dsp48e2/dsp48_minimal.pdf}
+\caption{Simplified DSP48E2 Slice architecture.}
+\label{fig_dsp48e2}
+\end{figure}
+
+By manipulating control signals, any of the expressions presented in Equation \ref{final_dsp_output_eq} can be implemented using a single DSP slice: 
+\begin{equation} \label{final_dsp_output_eq}
+\begin{split}
+    \mathit{DSPOut} =\begin{cases}
+    C \pm (B\times(D\pm A)\ +\ W + C_{in})\\ 
+    C \pm (A\times(D\pm B)\ +\ W + C_{in})\\
+    C \pm (B\times(D\pm B)\ +\ W + C_{in})\\
+    C \pm (A\times(D\pm A)\ +\ W + C_{in})\\
+    C \pm ((D\pm B)^2\ +\ W + C_{in})\\
+    C \pm ((D\pm A)^2\ +\ W + C_{in})
+    \end{cases}
+\end{split}
+\end{equation}
+
+The cascade path enables chained product accumulation by routing PCOUT from a preceding DSP slice to PCIN of the current slice, feeding the $Z$ multiplexer. Proper OPMODE and ALUMODE configuration select PCIN and define the arithmetic operation in Equation~\ref{final_alu_output_eq} that can be performed where $W,X,Y,Z$ represent multiplexer outputs.
+
+\begin{equation} \label{final_alu_output_eq}
+\begin{split}
+    \mathit{ALU\ Expression}=\begin{cases}
+    Z +W+X+Y +C_{in}\\ 
+                        Z -(W+X+Y +C_{in})\\ 
+                        -Z +(W+X+Y +C_{in})\\ 
+                        \text{not}(Z +W+X+Y +C_{in})            
+    \end{cases}
+\end{split}
+\end{equation}
+
+The DSP multiplier requires proper OPMODE configuration to route the partial products $U$ and $V$ through the $X$ and $Y$ multiplexers, respectively, while simultaneously selecting the appropriate input source (such as PCIN when implementing cascade chaining) for the $Z$ multiplexer. 
+This configuration enables both the fundamental multiplication operation and optional cascading functionality through careful signal routing control.
+
+
+\subsubsection{Cascading Two DSP Slices} \label{sec_dsp_cascade}
+Two DSP slices can be cascaded to create a $44\times18$-bit signed multiplier. 
+Assuming that we have two inputs $K$ of size $44$ bits and $M$ of size $18$ bits, then Equation~\ref{dsp_cascade_eq} can be used.
+
+\begin{equation} \label{dsp_cascade_eq}
+\begin{split}
+    K_L &= \{0, K[16:0]\}\\         
+    K_H &= {K[43:17]}\\ 
+    K&= (K_L + K_H << 17)\\
+    K\times M &= (K_L\times M) + (K_H \times M << 17)\\
+\end{split}
+\end{equation}
+
+ Then, due to the limited $48$-bit size and to make use of the $17$-bit right shift in the DSP slice, we can rewrite $K \times M$ using Equation \ref{dsp_cascade_shift_eq}.
+
+\begin{equation} \label{dsp_cascade_shift_eq}
+\begin{split}
+    P1 &= (K_L\times M)\\
+    P2 &= (K_H \times M)\\
+    K\times M &=  \{(P2 + (P1 >>17)),
+            \ P1[16:0]\}
+\end{split}
+\end{equation}
+
+Figure~\ref{fig_44x18casc} illustrates the cascaded DSP implementation with 4-cycle latency per slice when operating at maximum frequency. 
+The design routes S1's P output (17 LSBs) to global routing while cascading PCOUT to S2's PCIN (blue line in Figure~\ref{fig_44x18casc_pcout_pcin}), with S2's OPMODE configured for $17$-bit PCIN shifting.
+Proper signal synchronization requires delaying $K_H$ and $M$ inputs by one clock cycle for S2 synchronization, and the same for P1's 17 LSBs before concatenation with P2 to form the final product, yielding a 5-cycle total latency.
+The cascade path only supports 0 or 17-bit shifts.
+For other shift values, a LUT-based shift and sign extension, and the global routing P to C path is used as in Figure~\ref{fig_44x18casc_p_c}.
+Additional pipeline registers must be inserted to account for this additional cycle, resulting in a longer latency.
+Figure~\ref{fig_44x18casc} shows the registers implemented in the logic fabric in green.
+
+
+
+\begin{figure}[t]
+     \centering
+     \begin{subfigure}{0.7\columnwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/dsp48e2/cascade_dsp_slice_pcout_pcin.pdf}
+         \caption{Cascade Path}
+         \label{fig_44x18casc_pcout_pcin}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}{0.7\columnwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/dsp48e2/cascade_dsp_slice_p_to_c.pdf}
+         \caption{P to C path}
+         \label{fig_44x18casc_p_c}
+     \end{subfigure}
+        \caption{44$\times$18 Multiplier using two cascaded DSP blocks with different paths. The red lines represent the synchronization barriers. Green rectangles represent pipeline stages added outside of slices. The blue line distinguishes between the cascade path and the P-to-C path.}
+        \label{fig_44x18casc}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{Signed vs Unsigned Multiplication} \label{sec_sign_unsigned_mult}
+When decomposing large multipliers, careful consideration must be given to signed versus unsigned operations.
+Unsigned multipliers can be directly decomposed into smaller unsigned multipliers with full bit utilization.
+However, signed decomposition requires special handling; only the most significant portions of each input should use signed multiplication, while all other products must be computed as unsigned operations.
+This constraint becomes particularly important when using signed base primitives, which require zero-padding for unsigned operations.
+For instance, a signed $64\times64$-bit base multiplier can only scale to a $127\times127$-bit multiplier, as the least significant portions need MSB zero-padding. 
+The general formula $(\mathit{base\_size}-1)*2^n+1$ governs this relationship, producing valid sizes of 127, 253, 505, and 1009 bits for decomposition levels $n$=1 through 4 when starting from a $64\times64$ base. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{IP Multipliers} \label{sec_ip_background}
+AMD provides a Vivado IP block~\cite{xilinxincIPMultiplier2015} that can be used to build parametrized multipliers up to $64\times64$ bits, with options to optimize for frequency or resource utilization, reporting the resulting number of pipeline stages.
+At sizes larger than $47\times47$ bits, only the performance-optimal design is offered.
+While this achieves maximum DSP block frequency, it uses a large number of DSP blocks. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% \input{sections/Chapters/background/egg.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Background end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Different approaches begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Large Multiplier Design} \label{sec_diff_approaches}
+Large integer multiplication has been implemented using the different decompositions discussed in Section~\ref{sec_background}. 
+Some work has explored manual decomposition for not-so-small operand sizes, as in~\cite{pascaLargeMultipliersLessDSP2009,royTileMultiplicationEfficient2014,kummKaratsubaRectangularMultipliers2018}.
+The authors of~\cite{zhangIMpressLargeInteger2022} used an automatic equality saturation framework along with a cost model to hierarchically construct large multipliers from smaller ones while deciding which decomposition scheme should be used at each level.
+However, their approach does not consider the underlying architecture of the FPGA, relying on an HLS base multiplier, and thus does not achieve high frequency or area efficiency. 
+ 
+\subsection{Hierarchical Multiplication}
+We employ a hierarchical construction approach for large integer multipliers, recursively decomposing the multiplication operation through multiple levels while flexibly applying different decomposition schemes, Schoolbook or Karatsuba, at each stage.
+Additionally, an architecture-optimized multiplier that achieves both high frequency and resource efficiency is used as a base multiplier.
+
+\subsubsection{Building a Base Multiplier}
+
+%% here explain the algorithm and its caveats and why it is not always a square area. 
+\input{sections/Experimental/tiling_square_area_proof.tex}
+
+The selection of base multiplier size introduces a critical design trade-off: too small and there is increased LUT overhead for result combination, while too large and it constrains the feasible sizes for generated multipliers. 
+Our baseline is the AMD Vivado IP block~\cite {xilinxincIPMultiplier2015}, which offers a maximum size of $64\times64$ bits.
+We also build our own base multiplier, using the tiling algorithm in ~\cite{royTileMultiplicationEfficient2014}, while considering the base DSP block architecture and exploiting the cascade paths where possible to run at maximum frequency.
+This hand-crafted base multiplier better exploits the capabilities of the DSP blocks to be more area efficient.
+It utilizes fewer overall resources while being larger, $78\times78$ bits, utilizing 14 DSP slices, tiled as illustrated in Figure~\ref{fig_tiling78}. 
+The $x$-axis shows one input (MSB left), while the $y$-axis shows the other (MSB top). 
+Most tiled multipliers are $26\times17$ to fit the unsigned range of the DSP48E2, except those containing either operand's MSB, in which case leading zeros are not required as explained in Section ~\ref{sec_sign_unsigned_mult}. 
+Therefore, the full size at one or both of the $27\times18$ multiplier operands can be used, i.e. the $27$-bit operand as in M10, the $18$-bit operand as in M4, or at both as in M7. 
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\columnwidth]{figures/tiling/Tiling_78x78.pdf}
+\caption{Tiling scheme for $78\times78$ primitive base multiplier.}
+\label{fig_tiling78}
+\end{figure}
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.8\columnwidth]{figures/base77/mult78x78_design.pdf}
+\caption{Design of $78\times78$-bit primitive base multiplier. Green rectangles denote the number of pipeline stages. Red circles denote extraction operations while blue circles denote extraction, right shift, and sign extension operations.}
+\label{fig_dot78}
+\end{figure}
+
+The implementation process begins by efficiently mapping the generated multiplication terms (tiles) to DSP slices through several key optimizations.
+First, terms are sorted in ascending order based on their shift size, enabling systematic bit extraction at each stage while propagating the remaining bits to the next slice. 
+This process inherently converts left shifts into right shifts using Equation~\ref{dsp_cascade_eq} and~\ref{dsp_cascade_shift_eq}.
+All operations are carefully constrained within the 48-bit output limit, preventing unnecessary LUT or DSP overhead to maintain optimal DSP block utilization. 
+Non-overlapping least significant bits from each multiplier are directly routed to their corresponding positions in the final product, ensuring that additions with sign extension never exceed the 48-bit threshold. 
+With naive ordering, overlapping bits could exceed this limit and thus require wider additions and wasteful resource usage.
+The required right shift size matches the number of non-overlapping bits between consecutive DSP slices.
+The implementation uses two distinct data paths selected by shift requirements: the dedicated cascade path handles 17-bit or zero shifts without additional logic, while non-standard shifts utilize the P-to-C path. 
+In the latter case, the shift amount determines both the LSBs routed directly to the final product and the remaining bits' transformation (right-shifted and sign-extended to 48 bits for the next DSP's C input).
+The design primarily uses P-to-C paths with two exceptions: M1 to M12 and M6 to M7 connections utilize cascade paths. 
+Section \ref{sec_dsp_cascade} details the synchronization rules governing cascade path operation, with Figure~\ref{fig_dot78} providing a visual representation.
+Green rectangles show pipeline delays for timing synchronization, red circles indicate bit extraction for the final product, and blue circles represent extraction with right-shift and 48-bit sign-extension for the next slice's input. 
+Numbers inside circles specify bit counts or shift amounts, optimizing data flow efficiently. 
+
+
+
+
+
+The AMD IP design methodology presented in ~\cite{xilinxincIPMultiplier2015} is followed to generate a $64\times64$-bit IP base multiplier. 
+Our optimized base multiplier matches the AMD IP's maximum frequency while supporting larger inputs, and using 2 fewer DSPs and 300 more LUTs. 
+For optimal resource allocation, we calculate the minimum number of $26\times17$ tiles needed to cover the $64\times64$ IP, or $78\times78$ primitive-based multipliers (Equation~\ref{eq_mul_best}), i.e. excluding the forced waste due to unsigned tile use.
+While the IP multiplier wastes around 7 DSP slices beyond the theoretical minimum, our primitive-based design only sacrifices a few bits in one slice.
+
+
+
+\begin{equation} \label{eq_mul_best}
+\begin{split}
+\text{optimal\_num\_DSPs} &= \frac{(Size \times Size)}{(26 \times 17)}\\ 
+% \text{num\_wasted\_DSPs} &=  \text{num\_used\_DSPs} - \text{optimal\_num\_DSPs} \\ 
+\end{split}
+\end{equation}
+
+% Adjust the column separation (default is 6pt)
+% \setlength{\tabcolsep}{7pt}
+\begin{table}
+\centering
+\caption{AMD IP Multiplier vs Proposed Primitive Multiplier}
+\resizebox{1\linewidth}{!}{
+\begin{tabular}{
+lcccccc
+}
+\toprule
+
+% \textbf{}&\textbf{Size}&\textbf{LUTs}&\textbf{FFs}&\textbf{DSPs}&\textbf{Latency}&\textbf{\#Wasted DSPs}\\
+
+\textbf{}&\textbf{Size}&\textbf{LUTs}&\textbf{FFs}&\textbf{DSPs}&
+\shortstack{\textbf{Latency} \\ [-0.5ex] \textbf{(Cycles)}}& 
+\shortstack{\textbf{Wasted} \\ [-0.5ex] \textbf{DSPs}}\\ 
+
+\midrule
+
+IP&64&219&722&16&18&6.73\\
+\midrule
+Primitive&78&537&1051&14&28&0.235\\
+\midrule
+Primitive\_14&78&429&1386&14&14&0.235\\
+
+
+\bottomrule
+\end{tabular}
+}
+\label{table_primitive_vs_ip}
+\end{table}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Multiplier Generation}
+
+We developed a tool that automatically generates large integer multipliers through combining smaller multipliers.
+Using the mathematical foundations described in Section~\ref{sec_background}, the tool can take a base multiplier design and tile it an integer number of times in each dimension.
+The implementation supports mixed decomposition strategies, allowing designers to specify combinations of Schoolbook and Karatsuba methods through a JSON configuration file.
+The tool's output produced for each generated multiplier includes:  
+
+\begin{enumerate}
+    \item Complete Verilog implementations for each multiplier in the decomposition hierarchy and the combinational logic associated with it, along with corresponding testbenches for verification.
+    \item Tcl scripts to create Vivado projects, analyze resource utilization, and determine maximum achievable frequency while meeting timing constraints.
+    \item Dataflow decomposition diagrams that visually represent the mathematical operations and pipeline synchronization points. 
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Different approaches end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% WorkFlow begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{sections/Experimental/arithvworkflow.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% WorkFlow end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Experiments begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Evaluation}
+
+%Utilization in different levels of the decomposition
+\begin{figure}[t]
+     \centering
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/Graph_Output/Bar/conf_intermediate_bar_lut.pdf}
+         \caption{LUT Utilization with Different Decomposition Schemes}
+         \label{fig_lut_level_ip}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/Graph_Output/Bar/conf_intermediate_bar_dsp.pdf}
+         \caption{DSP Utilization with Different Decomposition Schemes}
+         \label{fig_lut_level_primitive}
+     \end{subfigure}     
+     \hfill
+     \caption{Resource Utilization for the IP-based (\textsuperscript{*}) and Primitive-based (\textsuperscript{**}) multipliers, with varying numbers of Karatsuba levels.}
+    
+      \label{fig_resource_level}
+
+   
+\end{figure}
+
+
+\subsection{Experiments and Results}
+% We target the AMD Alveo U250 FPGA (XCU250) for fair comparison with prior work. 
+We target the AMD Alveo U255C FPGA (XCU255C). 
+
+We tiled both our $64\times64$ IP base multiplier and our own $78\times78$ base multiplier hierarchically, varying the number of Karatsuba and Schoolbook decompositions levels as in~\cite{zhangIMpressLargeInteger2022}.
+Our analysis compares these implementations against previous work across three key metrics: frequency, LUT utilization, and DSP utilization.
+Due to signed multiplication constraints, we built a $1009$-bit multiplier with the IP base and a $1233$-bit multiplier with our proposed base, then normalized the results to $1024$-bit equivalents for comparison with previous research.
+Figure~\ref{fig_resource_level} shows how resource utilization scales with multiplier size and Karatsuba decomposition levels.
+More Karatsuba levels reduce DSP usage but increase LUT overhead due to added composition complexity.
+The quadratic growth in resource usage with input size led us to employ a quadratic scaling model for accurate 1024-bit comparisons.
+
+
+%%% Frequency Drop LinePlot
+\begin{figure}[t]
+     \centering
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/Graph_Output/Line/conf_line_ip_frequency_drop.pdf}
+         \caption{IP-based Multiplier Frequency Drop}
+         \label{fig_drop_freq_ip}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figures/Graph_Output/Line/conf_line_primitive_frequency_drop.pdf}
+         \caption{Primitive-based Frequency Drop}
+         \label{fig_drop_freq_primitive}
+     \end{subfigure}     
+     \hfill
+     \caption{Frequency Drop in Decomposition Levels in the Primitive-based and the IP-based multiplier}
+      \label{fig_drop_freq}
+
+   
+\end{figure}
+
+Figure~\ref{fig_drop_freq} depicts how the maximum frequency drops when the multiplier size increases. 
+There is a large drop once the design spans more than one SLR, due to the reduced connectivity between SLRs. 
+Figure~\ref{fig_drop_freq_ip} shows that the IP-based design suffers from this drop at lower sizes as it uses more DSP blocks.
+Meanwhile, the primitive based design, in Figure~\ref{fig_drop_freq_primitive}, sustains higher frequency for larger sizes due to its better DSP block efficiency.
+Recall that Karatsuba decomposition reduces DSP block usage, so helps in both designs.
+
+
+
+
+
+
+
+
+% Adjust the column separation (default is 6pt)
+
+\begin{table}
+\centering
+
+\caption{Area and performance comparison between all designs.
+Our IP-based and Primitive-based multipliers achieved much higher frequency than other approaches, with the Primitive being more resource-efficient. 
+\textsuperscript{*} This column calculates the wasted DSPs by comparing the actual implementation against a scaled theoretical optimum.
+}
+\resizebox{1\linewidth}{!}{
+\begin{tabular}{
+@{}lcrrrrrr@{}
+}
+\toprule
+
+
+\textbf{}&
+\shortstack{\textbf{\#Karat.} \\ [-0.5ex] \textbf{Levels}}
+&\textbf{LUTs}&\textbf{FFs}&\textbf{DSPs}&
+\shortstack{\textbf{Freq} \\ [-0.5ex] \textbf{(MHz)}} & 
+\shortstack{\textbf{Latency} \\ [-0.5ex] \textbf{(Cycles)}} & 
+\shortstack{\textbf{\#Wasted}\\ [-0.5ex] \textbf{DSPs \textsuperscript{*}}}\\
+
+\midrule
+
+
+\multirow{4}{*}{\centering HLS}&3&71893&N/A&1476&256&17&475\\
+                    &4&88986&N/A&1296&305&21&545\\
+                    &5&126193&N/A&972&302&21&409\\
+                    &6&165618&N/A&729&298&24&307\\
+\midrule
+IMpress1&N/A&150400&N/A&810&250&23&247\\
+IMpress2\cite{zhangIMpressLargeInteger2022}&N/A&129338&N/A&945&295&22&382\\
+\midrule
+
+\multirow{5}{*}{\centering Primitive}&4&143937&183155&837&528&229&87\\
+                                     &3&218891&299941&1131&453&214&130\\
+                                     &2&288082&381662&1550&438&193&216\\
+                                     &1&50936&68165&1709&442&167&70\\
+                                     &0&119262&139371&2471&428&136&99\\
+\midrule
+
+\multirow{5}{*}{\centering IP}&4&138860&66408&1328&445&220&578\\
+                              &3&164508&27374&1760&440&211&759\\
+                              &2&201416&91435&2432&300&196&1097\\
+                              &1&173580&872846&3000&246&176&1221\\
+                              &0&149237&247251&4219&253&125&1846\\
+
+
+\bottomrule
+\end{tabular}
+
+}
+\label{table_1024_res_comparison}
+\end{table}
+
+
+Table~\ref{table_1024_res_comparison} compares our IP-based and primitive-based large multipliers against an HLS-based design and those generated by IMpress in terms of resource utilization and performance.
+Our IP-based multipliers consistently achieved significantly higher frequencies than both IMpress and HLS implementations across all decomposition schemes while being less efficient in terms of resource utilization because the $64\times64$ is not so efficient in the first place. 
+% \todo[inline]{Why less? We should clarify this.}
+Our primitive-based large multipliers achieved higher frequency than the IP-based multipliers in all different configurations in addition to being resource efficient, utilizing fewer DSPs, but slightly more LUTs.
+IMpress achieves better overall performance than the HLS design in terms of frequency and area utilization.
+Our primitive-based multiplier achieved at least 45\%, and up to 73\% better frequency than the best-performing multiplier in the HLS and IMpress implementations. 
+
+
+%%
+%%
+%% If the professor agrees on the other figure, get Figure 7 from the archived tex file 
+
+
+
+
+Figure~\ref{fig_bubble_diff1024}  compares the best-performing models in different implementations in terms of the maximum achieved frequency against their LUTs and DSP usage.
+The results indicate distinct performance-resource tradeoffs: IMpress2 has the least LUT utilization, but has the second-highest DSP utilization while not achieving high-frequency.
+On the other hand, the full Karatsuba HLS implementation uses the least number of DSPs, but uses the largest number of LUTs and achieves the same low frequency as IMpress. 
+Our IP-based approach achieved a much higher frequency than other implementations using LUTs efficiently, but also using more DSP blocks than other implementations.
+Our primitive-based multiplier with 4 levels of Karatsuba decomposition (the grey circle) achieved by far the highest frequency while using an LUTs and DSPs within the range of other implementations.
+Though they do achieve higher frequency, and hence throughput, our implementations do suffer from longer latency due to the deep pipelining required to map efficiently to the DSP blocks.
+
+
+The DSP efficiency of each implementation is evaluated by comparing its utilization against a scaled theoretical optimum calculated from Equation~\ref{eq_mul_best}. 
+The base square size is 16 bits for HLS, 32 for IMpress, and 64 for our implementation. 
+This optimal reference is calculated by scaling the baseline DSP counts, where each Karatsuba decomposition level introduces 3 multipliers and each Schoolbook level 4 multipliers, that is  ($\textit{base\_opt\_DSP\_count} \ * 3^{\#Karatsuba} \ * 4^{\#Schoolbook}$). 
+IP-based implementations achieve the poorest resource efficiency with the highest DSP waste, primarily due to the inherent inefficiency of the $64\times64$ IP base multiplier.
+In contrast, our primitive-based approach achieves maximal efficiency with minimal DSP waste.  
+Intermediate implementations like HLS and IMpress show significantly higher DSP waste compared to our primitive-based design, though still outperform the IP-based approach.
+This shows that coupling the tiling automation with an efficient hand-crafted base primitive is key to maximising throughput and resource efficiency.
+
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/Graph_Output/Bubble/conf_bubble_Full_Karatsuba__muls1024.pdf}
+\caption{Area and Performance comparison of different implementations.
+The size of each circle and the number inside denotes LUT utilization.}
+\label{fig_bubble_diff1024}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Experiments end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Related work begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Related Work}
+Authors in~\cite{fahmyMapDSPMaxPerformance2016} developed an automated tool for mapping arithmetic expressions to DSP blocks while preserving high operating frequency.
+They extended this work in~\cite{fahmyMultipumpingDSP2017}  through multipumping techniques to enable efficient resource sharing.
+While these methods demonstrate effective DSP utilization, both approaches rely on fixed template databases that constrain their generalizability. 
+Additionally, neither solution addresses the challenges of large integer multiplication.
+Authors in~\cite{zhangIMpressLargeInteger2022} presented IMpress, a framework that utilizes rewrite rules, E-graphs, and equality saturation to decompose a large multiplier into a hierarchy of smaller ones implemented using HLS.
+However, the base HLS multipliers do not achieve high frequency.
+Extending general decomposition schemes to be architecture-aware has been explored in previous work. 
+In~\cite{royTileMultiplicationEfficient2014}, the authors proposed a tiling algorithm to create a $58\times58$-bit multiplier
+that was previously obtained in~\cite{pascaLargeMultipliersLessDSP2009} and to generalize for arbitrary wordlength multiplier and for arbitrary DSP multiplier width.
+The algorithm represents the input width, or a close number, as a linear combination of DSP multiplier input sizes. 
+Then, the algorithm places rectangles on the boundary, then recursively solves the reduced square problem in the middle.
+However, it is limited to Schoolbook decomposition and square multiplier inputs, and it does not scale well for large numbers, because the reduced problem is not always a square area. 
+
+% \todo[inline]{Need a shorter summary}
+% \todo[inline, color=green!40]{Done}
+
+
+%%% karatsuba tiling %%%
+In~\cite{kummKaratsubaRectangularMultipliers2018}, the authors implemented a rectangular multiplier with Karatsuba decomposition. 
+They replaced subtractions in Equation~\ref{karatsuba_eq} with additions to effectively use the post-adder of the DSP slice. 
+However, this work lacks a scalable, generalizable algorithm for bigger operand sizes.
+Authors in~\cite{kummTilingILP2017} proposed a binary ILP formulation for integer multiplication, but it takes several days to compute sizes beyond $64\times64$ bits.
+Then, in~\cite{kummTilingHeuristics2020}, they extended their previous ILP approach to adopt Karatsuba decomposition as a special tile in the ILP problem along with some greedy and beam search heuristics.
+Both run at a low frequency and have a limited max operand size of $64$ bits.
+
+
+% \todo[inline]{Again, need a smaller summary and no equations.}
+% \todo[inline, color=green!40]{Done}
+% \todo[inline]{Where is IMPRESS here?}
+% \todo[inline, color=green!40]{Done}
+% \todo[inline, color=green!40]{I should add ronac work and automatic datapath optimizations}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Related work end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Future work begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \input{sections/Chapters/future_work}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Future work end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusion begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions and Future Work}
+Since large integer multiplication is needed by many applications, it must be implemented in a way that maximizes performance while also using resources efficiently.  
+In this work, we proposed an IP-based base multiplier as well as a new hand-crafted design of a base multiplier that can be used to form large integer multipliers, optimized for the AMD DSP48E2 primitive. 
+We created a tool that automatically generates the RTL code for performing different decomposition schemes of large integer multiplication down to these two base multipliers. 
+Both designs achieve high frequencies above 400MHz.
+The proposed Primitive-based approach achieved around 73\% higher frequency than other approaches while using around 13\% fewer DSP blocks at the expense of 5\% more LUTs. 
+
+In this work, we hand-crafted the base multiplier around the DSP48E2 primitive. 
+In the future, we plan to leverage equality saturation and rewrite rules to provide a tool that automatically builds the large integer multiplication, whether square or rectangle, directly from arbitrary DSP primitives.
+It would also be possible to extend this to other functions beyond multiplication. 
+Finally, some strategies for mitigating the cross-SLR overhead, including another level of hierarchical pipelining could be explored.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Conclusion end here   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% References begin here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% use a bibliography generated by BibTeX as the reference list
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% References end here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% that's all folks
+\end{document}
+
+

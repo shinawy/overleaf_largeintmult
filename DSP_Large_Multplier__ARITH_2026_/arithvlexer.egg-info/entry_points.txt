@@ -1,0 +1,2 @@
+[pygments.lexers]
+arithv = arithvlexer:ArithVLexer

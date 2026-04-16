@@ -1,0 +1,150 @@
+\begin{table*}[t]
+\caption{Rewrite Rules for Building the Base Multiplier}
+\label{table_rewrite}
+\centering
+\begin{tabularx}{\textwidth}{cXXXc}
+\toprule
+\textbf{}&\textbf{Rule Name}&\textbf{LHS}&\textbf{RHS/Action}&\textbf{Condition}\\
+\midrule
+
+1&Reorder Shift Sizes Ascendingly &$((x << m) + (y << n))$&$((y << n) + (x <<m))$&if $n<m$\\
+\midrule
+2&Shift-Left to Shift-Right &$(x + (y << n) )$&$(\{ y + (x >> n) , x[n-1:0]\})$&N/A\\
+\midrule
+3&Term to DSP Slice 1 &$((a*b) + ((c*d) >> n))$&[ \textbf{S1}(A=$a$, B=$b$, PCOUT), \textbf{S2}(A=$c$, B=$d$, PCINSh17= S1\_PCOUT) ]& $n=17$\\
+\midrule
+4&Term to DSP Slice 2&$((a*b) + ((c*d)))$&[ \textbf{S1}(A=$a$, B=$b$, PCOUT), \textbf{S2}(A=$c$, B=$d$, PCIN= S1\_PCOUT) ]& $n=0$\\
+\midrule
+5&Term to DSP Slice 3&$((a*b) + ((c*d) >> n))$&[ \textbf{S1}(A=$a$, B=$b$, P), \textbf{S2}(A=$c$, B=$d$, C= S1\_P\_Rshifted\_SignExtended ]& $n\neq17\ \&\ n\neq 0$\\
+\midrule
+6&Right Shift &$(x >> n)$&$x[len(x):n]$& N/A\\
+
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+
+
+
+% This is if we want to be more explicit
+Speaking of the DSP language and denoting the final product as P, the 17 LSBs from the output P of M1 DSP slice will be the 17 LSBs of the final product (P[16:0]) and then pass the PCOUT of M1  to the PCIN of the next slice M12.
+In M12, PCIN shifted by 17 is chosen in the Z multiplexer input to the post-adder. 
+Then, since the next shift is not 17 or 0, we cannot use the cascade path as in the previous connection.
+Therefore, the P to C path is used instead. 
+The 9 LSBs from the P output of M12 are obtained to fill in P[25:17] and then the P output of M12 is right shifted by 9 and sign extended to 48-bit and passed the C input of the next slice M2.
+In this case, the W multiplexer in M2 needs to choose C input as the input of the post-adder. 
+There are more facts that need to be taken into consideration when cascading the multipliers: 
+\begin{enumerate}
+   
+    \item Each DSP slice takes 4 clock cycles to compute the results.
+    \item The PCOUT and P outputs of the previous DSP slice, and thus the PCIN of the current DSP slice will be available after these 4 clock cycles. 
+    On one hand, if the cascade path is used, the partial products obtained from the DSP slice multiplier will be available after 3 clock cycles, so the input of the current DSP slice needs to be delayed by one clock cycle so that the PCOUT of the previous slice and the Multiplier’s output of the current slice will be available with correct timing. 
+    On the other hand, if the P to C path is used, the inputs of the current DSP slice are delayed by two pipeline stages instead of one as the C input is pipelined by one stage inside of the current DSP slice in our design.
+     \item Output signals of the DSP slices will not be ready at the same time for concatenation of the final output, so we need to pipeline them correctly to ensure correct results.
+     To illustrate, the extracted bits of each slice output need to be delayed by one or two clock cycles for each  DSP slice added after it until the final product is obtained. 
+     Therefore, the first DSP slice has zero delay at its inputs while the last DSP slice has zero delay at its output. 
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Adjust the column separation (default is 6pt)
+% \setlength{\tabcolsep}{7pt}
+\begin{table}[t]
+\centering
+\caption{1024-bit Multiplier Comparison against IMpress, HLS, IP implementation}
+\begin{tabular}[t]{
+p{\scaleResultTable\linewidth} @{\hspace{20pt}}
+p{\scaleResultTable\linewidth} 
+p{\scaleResultTable\linewidth} 
+p{\scaleResultTable\linewidth}@{\hspace{4pt}} p{\scaleResultTable\linewidth}@{\hspace{20pt}} 
+p{\scaleResultTable\linewidth}  @{}
+}
+
+\toprule
+\textbf{}&\textbf{LUTs}&\textbf{FFs}&\textbf{DSPs}&\textbf{Freq (MHz)}&\textbf{Latency (Cycles)}\\
+\midrule
+
+HLS\_3-Karat&71893&N/A&1476&256&17\\
+\hline
+HLS\_4-Karat&88986&N/A&1296&305&21\\
+\hline
+HLS\_5-Karat&126193&N/A&972&302&21\\
+\hline
+HLS\_6-Karat&165618&N/A&729&298&24\\
+\hline
+IMpress1\cite{zhangIMpressLargeInteger2022}&150400&N/A&810&250&23\\
+\hline
+IMpress2\cite{zhangIMpressLargeInteger2022}&129338&N/A&945&295&22\\
+\hline
+Primitive\_4-Karat&143937&183155&837&528&229\\
+\hline
+IP\_4-Karat&138860&66408&1328&445&220\\
+\hline
+Primitive\_3-Karat&218891&299941&1131&453&214\\
+\hline
+IP\_3-Karat&164508&27374&1818&440&211\\
+\hline
+Primitive\_2-Karat&288082&381662&1550&438&193\\
+\hline
+IP\_2-Karat&201416&91435&2965&300&196\\
+\hline
+Primitive\_1-Karat&50936&68165&1709&442&167\\
+\hline
+IP\_1-Karat&173580&872846&3562&246&176\\
+\hline
+Primitive\_0-Karat&119262&139371&2471&428&136\\
+\hline
+IP\_0-Karat&149237&247251&4225&253&125\\
+\hline
+
+\bottomrule
+\end{tabular}
+\label{table_1024_res_comparison}
+\end{table}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%%
+%% If the professor agrees on the other figure, get Figure 7 from the archived tex file 
+
+
+Figure \ref{fig_scatter_diff_mul1024}  compares the best models in different implementations in terms of the maximum achieved frequency against their LUT usage in Figure \ref{fig_scatter_lut_freq}, and their DSP usage in Figure \ref{fig_scatter_dsp_freq}.
+Our IP-based approach achieved a much higher frequency than other implementations using LUTs efficiently, but it sacrifices many more DSP slices than other implementations.
+Our primitive-based multiplier with 4 levels of Karatsuba decomposition, the grey star point, achieved by far the highest frequency while using an average number of LUTs and a minimal number of DSP slices. 
+
+\begin{figure}[t]
+     \centering
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{sections/figures/Graph_Output/Scatter/conf_scatter_Full_Karatsuba_K LUTs_muls1024.pdf}
+         \caption{Different Implementations between LUTs and Frequency}
+         \label{fig_scatter_lut_freq}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{sections/figures/Graph_Output/Scatter/conf_scatter_Full_Karatsuba_DSPs_muls1024.pdf}
+         \caption{Different Implementations between DSPs and Frequency}
+         \label{fig_scatter_dsp_freq}
+     \end{subfigure}     
+     \hfill
+     \caption{Different Implementations' Resource Utilization against Frequency}
+      \label{fig_scatter_diff_mul1024}
+
+   
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% unsigned numbers 
+% In unsigned numbers, the most significant bit represents a positive weight where in signed numbers, it represents a negative weight. 
+% To illustrate $100$ can be seen as $2^2+0+0$ which is $4$ if it is unsigned number or  as $-2^2+0+0$ which is -4 if it is a signed number. 
+% Additionally, when performing computations with different bitwidth unsigned operands, they are extended with zeros, while with signed operands, the most significant bit is replicated when extending operands. 
+% Not only this, but unsigned and signed binary numbers have  different ways of decomposition. 
+% For signed numbers, all parts are forced to be unsigned numbers, thus to have a leading zero except for the part that has the most significant bit. 
+% For instance, if $A=111$ is unsigned, then it represents the value 7 and it can be decomposed into three parts $[1,1,1]$. The actual value can be retrieved again with this formula putting shifts into consideration: $1<<2+1<<1+1 = 4+2+1 = 7$ where the add operation is a unsigned operation. 
+% On the other hand, if $A=111$ is signed, then it represents the value -1 and it must be decomposed into these three parts: $[1, 01, 01]$. Again, the actual value can retrieved using this formula: $1<<2+01<<1+01 = -4+2+1 = -1$ where the add operation is a signed operation. 
+% To build a large multiplier that has signed operands with a fixed-size base multiplier, one bit should be reserved for the leading zeros in the lower bits.

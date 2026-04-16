@@ -1,0 +1,108 @@
+\section{ArithV Multiplier Workflow}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% overview here 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+\section{ArithV Language}
+ArithV language is the abstraction used in this project to represent arithmetic operations.
+The language is designed to be simple and easy to use while putting the burden on the compilation phase to optimize the code and on the hardware generation phase to generate efficient hardware.
+The language supports basic arithmetic operations such as addition, subtraction, multiplication, and bitwise operations.
+It also supports more complex operations such as concatenation, slicing, and shifting. 
+The multiplication operation is the main focus of this language, and it supports both standard multiplication and primitive multiplication that maps directly to hardware primitives such as DSP blocks.
+If the multiplication operation matches the size of the DSP block, it is marked as a primitive multiplication operation by the optimization passes of the compiler, allowing for direct instantiation of the DSP block in the generated hardware.
+The language is also designed to be module based, and it has functional programming style. 
+Each module has a set of input and output ports, and the body of the module consists of a series of operations that define the functionality of the module.
+Each module can be called within other modules, allowing for hierarchical design.
+Each block must have a mandatory TestBench subblock that tests defines the desired functionality of each output port given the input ports. 
+This TestBench is used to verify the correctness of the generated hardware and consumed by the ArithV Python tester to verify the correctness of the design at the software level before hardware generation.
+It is also used to generate the hardware testbench for each module. 
+The language also supports further fine-grained control over the type of operations used in the design, such as specifying whether to use signed or unsigned operations, and whether to use lockstep style or interleaved style for combinational operations, i.e. additions. 
+To illustrate, the difference between lockstep and interleaved styles, consider the addition of three operands A, B, and C.
+In lockstep style, the addition is performed in two stages: first, A and B are added together, and then the result is added to C.
+In interleaved style, the partial output from adding A, and B is immediately added to the corresponding part in C, allowing for potentially faster computation by reducing the overall latency of the addition operation.
+By this notion, the designer can decompose any compute application into standard operations and primitive operations without worrying about the low-level hardware details, allowing the compiler and hardware generation phases to handle the optimizations and efficient hardware generation.
+Listing ~\ref{lst:addertree} demonstrates a simple ArithV module that captures the arithv code generated for an adder tree that adds three inputs A, B, and C together using both interleaved and lockstep styles.
+
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{minipage}{\textwidth}
+\lstinputlisting[style=arithvstyle]{arithvfiles/test_arithvaddertree.arithv}
+\end{minipage}
+}
+\caption{ArithV code example showing an adder tree test module with optimization opportunities.}
+\label{lst:addertree}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Tool Explanation}
+This tool leverages ArithV semantics to generate optimized large integer multipliers using DSP48E2 blocks in Xilinx FPGAs. Figure~\ref{fig_tool_overview} shows the overall workflow of the tool.
+The process begins with the user providing input specifications, including the desired multiplication size and the base multiplier dimensions.
+The \textbf{Tiler} module then decomposes the large multiplication into smaller segments based on the specified base sizes creating a tiling scheme that tries to optimize for both area and performance.
+Sometimes, multiplication sizes may not be perfectly composed of the base sizes, so the tool ensures that the decomposition covers the entire multiplication area, potentially leaving some segments smaller than the base size filling them with DSP48E2 blocks making  a flat hierarchy with schoolbook decomposition only.
+Next, the \textbf{Combination Generator} produces various combinations of decomposition schemes, allowing exploration of different configurations for the multiplication operation and allowing also for hierarchical tiling.
+Flat hierarchy limits the use of Karatsuba decomposition to 1-level only while hierarchical decomposition allows for multiple levels of Karatsuba decomposition.
+The generated combinations are then processed by two parallel blocks: the \textbf{ArithV Exporter} and the \textbf{Visualizer}.
+The  \textbf{ArithV Exporter} translates the decomposition schemes into the ArithV intermediate representation. 
+The \textbf{Visualizer} provides a graphical representation of the decomposition schemes, aiding in understanding and analysis and ensuring correct tiling for each variant by checking for 100\% coverage with no overlaps.
+Subsequently, the ArithV representations are fed into the \textbf{ArithV Python Tester}, which verifies the correctness of the generated schemes through simulation and testing at the software level before hardware generation.
+After verification, the \textbf{ArithV optimizer} compiles the ArithV representations into hardware descriptions.
+The compiler applies various optimizations to enhance performance and resource utilization of the generated designs.
+First, it passes through the code to identify the eligible multiplications that can be mapped directly to DSP blocks, that is, multiplications that match the DSP block sizes, i.e., $27\times18$ or smaller changing the normal Mul operation to PrimMul operation.
+This allows for instantiating the DSP48E2 primitive directly instead of relying on the default synthesis tool mapping, which may not be optimal.
+Also, it identifies the addition operations that are done using the outputs of the DSP blocks and changes them to PrimAdd operations.
+Then, it groups the operations to different groups each of which have a difference of 17 bits between each consecutive operation in the group to allow for cascading the DSP48E2 blocks together for better performance \cite{xilinxVirtex-4DSPExplainedFPGA}. 
+Second, it changes the subsequent adders used in the multiplication process to adder trees to reduce latency and to capture potential area saving.
+For instance, the adder tree in Listing ~\ref{lst:addertree} can be reduced to concatenation operation if the operation is unsigned.
+This optimization cannot be captured with individual adders, but it can be captured when looking at the adder tree as a whole.
+The rest of optimizations are done in the hardware generation phase.
+Finally, the \textbf{Verilog Generator} produces the Verilog source files along with a testbench for each module for easier hardware synthesis, debugging and implementation on FPGA.
+It also handles the pipelining and timing optimizations to allow for achieving higher operating frequencies while maintaining low latency. 
+It deals with each block call as a separate module based on what cycle the inputs are available and when the outputs are needed, inserting the necessary registers. 
+Thus, what can be seen as identical block calls in the ArithV representation may be treated as different modules in the generated Verilog if they operate in different cycles without putting the burden of handling timing on the user.
+Also, it generates TCL scripts for automating the synthesis process and XDC files for specifying design constraints.
+
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+% begin figures
+
+% Tool overview figure
+\begin{figure}[t]
+    \centering
+    \resizebox{\columnwidth}{!}{\input{figures/tool_explain/tool_overview.tex}}
+    \caption{Overview of the tool workflow from input specification to optimized multiplier.}
+    \label{fig_tool_overview}
+\end{figure} 
+
+% end figures
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%

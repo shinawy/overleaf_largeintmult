@@ -1,0 +1,210 @@
+\relax 
+\providecommand\zref@newlabel[2]{}
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{patelComparisonKeySize2023}
+\citation{sarrafzadehImageRestorationFPGA2003}
+\citation{prasannaFHEPerformanceModelingFPGA2021}
+\citation{karatsubaOriginalPaper}
+\citation{yapFFTquickmul2000}
+\citation{weemsNTTHighPrecisionInteger2011}
+\citation{zhangIMpressLargeInteger2022}
+\citation{kummTilingHeuristics2020}
+\citation{zhangIMpressLargeInteger2022}
+\@LN@col{1}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{section.1}\protected@file@percent }
+\@LN@col{2}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Background}{1}{section.2}\protected@file@percent }
+\newlabel{sec_background}{{II}{1}{Background}{section.2}{}}
+\newlabel{sec_background@cref}{{[section][2][]II}{[1][1][]1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Decomposition Schemes}{1}{subsection.2.1}\protected@file@percent }
+\newlabel{schoolbook_eq}{{1}{1}{Decomposition Schemes}{equation.2.1}{}}
+\newlabel{schoolbook_eq@cref}{{[equation][1][]1}{[1][1][]1}}
+\citation{karatsubaOriginalPaper}
+\citation{xilinxVirtex-4DSPExplainedFPGA,ghiasiDSPEfficientCNNFPGA2020}
+\citation{pascaFloatingPointDSPBlock2015}
+\citation{UltraScaleArchitectureDSP2021}
+\@LN@col{1}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:schoolbook_decomp}{{1a}{2}{Schoolbook decomposition.\relax }{figure.caption.1}{}}
+\newlabel{fig:schoolbook_decomp@cref}{{[subfigure][1][1]1a}{[1][2][]2}}
+\newlabel{sub@fig:schoolbook_decomp}{{a}{2}{Schoolbook decomposition.\relax }{figure.caption.1}{}}
+\newlabel{sub@fig:schoolbook_decomp@cref}{{[subfigure][1][1]1a}{[1][2][]2}}
+\newlabel{fig:karatsuba_decomp}{{1b}{2}{Karatsuba decomposition.\relax }{figure.caption.1}{}}
+\newlabel{fig:karatsuba_decomp@cref}{{[subfigure][2][1]1b}{[1][2][]2}}
+\newlabel{sub@fig:karatsuba_decomp}{{b}{2}{Karatsuba decomposition.\relax }{figure.caption.1}{}}
+\newlabel{sub@fig:karatsuba_decomp@cref}{{[subfigure][2][1]1b}{[1][2][]2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparison of Schoolbook and Karatsuba decomposition schemes for a $2n \times 2n$ multiplier.\relax }}{2}{figure.caption.1}\protected@file@percent }
+\newlabel{fig:karatsuba_vs_schoolbook}{{1}{2}{Comparison of Schoolbook and Karatsuba decomposition schemes for a $2n \times 2n$ multiplier.\relax }{figure.caption.1}{}}
+\newlabel{fig:karatsuba_vs_schoolbook@cref}{{[figure][1][]1}{[1][2][]2}}
+\newlabel{trick_schoolbook_eq}{{2}{2}{Decomposition Schemes}{equation.2.2}{}}
+\newlabel{trick_schoolbook_eq@cref}{{[equation][2][]2}{[1][2][]2}}
+\newlabel{karatsuba_eq}{{3}{2}{Decomposition Schemes}{equation.2.3}{}}
+\newlabel{karatsuba_eq@cref}{{[equation][3][]3}{[1][2][]2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}DSP Block Consideration}{2}{subsection.2.2}\protected@file@percent }
+\@LN@col{2}
+\newlabel{fig:karatsuba_msb}{{2a}{2}{The $n$-bit multiplier is used for the MSB.\relax }{figure.caption.2}{}}
+\newlabel{fig:karatsuba_msb@cref}{{[subfigure][1][2]2a}{[1][2][]2}}
+\newlabel{sub@fig:karatsuba_msb}{{a}{2}{The $n$-bit multiplier is used for the MSB.\relax }{figure.caption.2}{}}
+\newlabel{sub@fig:karatsuba_msb@cref}{{[subfigure][1][2]2a}{[1][2][]2}}
+\newlabel{fig:karatsuba_lsb}{{2b}{2}{The $n$-bit multiplier is used for the LSB.\relax }{figure.caption.2}{}}
+\newlabel{fig:karatsuba_lsb@cref}{{[subfigure][2][2]2b}{[1][2][]2}}
+\newlabel{sub@fig:karatsuba_lsb}{{b}{2}{The $n$-bit multiplier is used for the LSB.\relax }{figure.caption.2}{}}
+\newlabel{sub@fig:karatsuba_lsb@cref}{{[subfigure][2][2]2b}{[1][2][]2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces $n+1$-bit multiplier used in Karatsuba decomposition. The grey areas denote the shift amount (added zeros). The dotted rectangles denote concatenation. The LSB variant reduces the widest adder from $2n$ to $n{+}1$ bits.\relax }}{2}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:karatsuba_nplus1_decomposition}{{2}{2}{$n+1$-bit multiplier used in Karatsuba decomposition. The grey areas denote the shift amount (added zeros). The dotted rectangles denote concatenation. The LSB variant reduces the widest adder from $2n$ to $n{+}1$ bits.\relax }{figure.caption.2}{}}
+\newlabel{fig:karatsuba_nplus1_decomposition@cref}{{[figure][2][]2}{[1][2][]2}}
+\newlabel{sec_dsp_cascade}{{\mbox  {II-B}}{2}{DSP Block Consideration}{subsection.2.2}{}}
+\newlabel{sec_dsp_cascade@cref}{{[subsection][2][2]\mbox  {II-B}}{[1][2][]2}}
+\newlabel{dsp_cascade_shift_eq}{{4}{2}{DSP Block Consideration}{equation.2.4}{}}
+\newlabel{dsp_cascade_shift_eq@cref}{{[equation][4][]4}{[1][2][]2}}
+\citation{xilinxincIPMultiplier2015}
+\citation{royTileMultiplicationEfficient2014}
+\@LN@col{1}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  Comparison of DSP48E2 cascade paths: PCOUT-to-PCIN (green) vs. P-to-C (blue). The ExSRn block extracts n bits from P to output while shifting P right by n bits, sign-extending, and routing the result to the C input. The P-to-C path requires additional logic and an extra pipeline stage.\relax }}{3}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:cascade_comparison}{{3}{3}{Comparison of DSP48E2 cascade paths: PCOUT-to-PCIN (green) vs. P-to-C (blue). The ExSRn block extracts n bits from P to output while shifting P right by n bits, sign-extending, and routing the result to the C input. The P-to-C path requires additional logic and an extra pipeline stage.\relax }{figure.caption.3}{}}
+\newlabel{fig:cascade_comparison@cref}{{[figure][3][]3}{[1][2][]3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Signed vs Unsigned Multiplication}{3}{subsection.2.3}\protected@file@percent }
+\newlabel{sec_sign_unsigned_mult}{{\mbox  {II-C}}{3}{Signed vs Unsigned Multiplication}{subsection.2.3}{}}
+\newlabel{sec_sign_unsigned_mult@cref}{{[subsection][3][2]\mbox  {II-C}}{[1][2][]3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-D}}IP Multipliers}{3}{subsection.2.4}\protected@file@percent }
+\newlabel{sec_ip_background}{{\mbox  {II-D}}{3}{IP Multipliers}{subsection.2.4}{}}
+\newlabel{sec_ip_background@cref}{{[subsection][4][2]\mbox  {II-D}}{[1][3][]3}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Large Multiplier Design}{3}{section.3}\protected@file@percent }
+\newlabel{sec_large_mult_design}{{III}{3}{Large Multiplier Design}{section.3}{}}
+\newlabel{sec_large_mult_design@cref}{{[section][3][]III}{[1][3][]3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Building Base Multipliers}{3}{subsection.3.1}\protected@file@percent }
+\newlabel{sec_build_base_mult}{{\mbox  {III-A}}{3}{Building Base Multipliers}{subsection.3.1}{}}
+\newlabel{sec_build_base_mult@cref}{{[subsection][1][3]\mbox  {III-A}}{[1][3][]3}}
+\@LN@col{2}
+\citation{BeumontTilingNPComplete2002}
+\@LN@col{1}
+\newlabel{fig_tiling44}{{4a}{4}{44-bit tiling (5 DSP48E2).\relax }{figure.caption.4}{}}
+\newlabel{fig_tiling44@cref}{{[subfigure][1][4]4a}{[1][3][]4}}
+\newlabel{sub@fig_tiling44}{{a}{4}{44-bit tiling (5 DSP48E2).\relax }{figure.caption.4}{}}
+\newlabel{sub@fig_tiling44@cref}{{[subfigure][1][4]4a}{[1][3][]4}}
+\newlabel{fig_tiling78}{{4b}{4}{78-bit tiling (14 DSP48E2).\relax }{figure.caption.4}{}}
+\newlabel{fig_tiling78@cref}{{[subfigure][2][4]4b}{[1][3][]4}}
+\newlabel{sub@fig_tiling78}{{b}{4}{78-bit tiling (14 DSP48E2).\relax }{figure.caption.4}{}}
+\newlabel{sub@fig_tiling78@cref}{{[subfigure][2][4]4b}{[1][3][]4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Tiling schemes for different square base multiplier sizes.\relax }}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig_tiling_examples}{{4}{4}{Tiling schemes for different square base multiplier sizes.\relax }{figure.caption.4}{}}
+\newlabel{fig_tiling_examples@cref}{{[figure][4][]4}{[1][3][]4}}
+\newlabel{fig_one_group}{{5a}{4}{One group strategy (minimizing LUTs).\relax }{figure.caption.5}{}}
+\newlabel{fig_one_group@cref}{{[subfigure][1][5]5a}{[1][3][]4}}
+\newlabel{sub@fig_one_group}{{a}{4}{One group strategy (minimizing LUTs).\relax }{figure.caption.5}{}}
+\newlabel{sub@fig_one_group@cref}{{[subfigure][1][5]5a}{[1][3][]4}}
+\newlabel{fig_three_groups}{{5b}{4}{Multi-group strategy (minimizing latency).\relax }{figure.caption.5}{}}
+\newlabel{fig_three_groups@cref}{{[subfigure][2][5]5b}{[1][3][]4}}
+\newlabel{sub@fig_three_groups}{{b}{4}{Multi-group strategy (minimizing latency).\relax }{figure.caption.5}{}}
+\newlabel{sub@fig_three_groups@cref}{{[subfigure][2][5]5b}{[1][3][]4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Grouping strategies for the 78-bit base multiplier. Green rectangles indicate pipeline stage counts. Yellow circles show the number of LSBs extracted from P and the corresponding right shift amount passed to C when using the P-to-C path. The multi-group strategy reduces latency, while the one-group strategy minimizes LUT usage. \relax }}{4}{figure.caption.5}\protected@file@percent }
+\newlabel{fig_grouping_strategies}{{5}{4}{Grouping strategies for the 78-bit base multiplier. Green rectangles indicate pipeline stage counts. Yellow circles show the number of LSBs extracted from P and the corresponding right shift amount passed to C when using the P-to-C path. The multi-group strategy reduces latency, while the one-group strategy minimizes LUT usage. \relax }{figure.caption.5}{}}
+\newlabel{fig_grouping_strategies@cref}{{[figure][5][]5}{[1][3][]4}}
+\@LN@col{2}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Comparison of different base multiplier strategies.\relax }}{4}{table.caption.6}\protected@file@percent }
+\newlabel{table_diff_ways_base_multiplier}{{I}{4}{Comparison of different base multiplier strategies.\relax }{table.caption.6}{}}
+\newlabel{table_diff_ways_base_multiplier@cref}{{[table][1][]I}{[1][3][]4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces  Resource and frequency comparison between the 64-bit AMD IP and our 77-bit base multiplier when tiled to larger sizes. \relax }}{4}{figure.caption.7}\protected@file@percent }
+\newlabel{fig_prim64vs77_comparison}{{6}{4}{Resource and frequency comparison between the 64-bit AMD IP and our 77-bit base multiplier when tiled to larger sizes. \relax }{figure.caption.7}{}}
+\newlabel{fig_prim64vs77_comparison@cref}{{[figure][6][]6}{[1][4][]4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Tiler}{4}{subsection.3.2}\protected@file@percent }
+\newlabel{sec_tiler}{{\mbox  {III-B}}{4}{Tiler}{subsection.3.2}{}}
+\newlabel{sec_tiler@cref}{{[subsection][2][3]\mbox  {III-B}}{[1][4][]4}}
+\@LN@col{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Optimal Base Size Choice}{5}{subsection.3.3}\protected@file@percent }
+\@LN@col{2}
+\newlabel{fig_overshoot_tiling}{{7a}{5}{Overshoot tiling with 43-bit base showing the final achieved size exceeds the target.\relax }{figure.caption.8}{}}
+\newlabel{fig_overshoot_tiling@cref}{{[subfigure][1][7]7a}{[1][5][]5}}
+\newlabel{sub@fig_overshoot_tiling}{{a}{5}{Overshoot tiling with 43-bit base showing the final achieved size exceeds the target.\relax }{figure.caption.8}{}}
+\newlabel{sub@fig_overshoot_tiling@cref}{{[subfigure][1][7]7a}{[1][5][]5}}
+\newlabel{fig_target_constrained_tiling}{{7b}{5}{Target-constrained tiling with 77-bit base, showing a remaining portion that must be tiled with other multipliers.\relax }{figure.caption.8}{}}
+\newlabel{fig_target_constrained_tiling@cref}{{[subfigure][2][7]7b}{[1][5][]5}}
+\newlabel{sub@fig_target_constrained_tiling}{{b}{5}{Target-constrained tiling with 77-bit base, showing a remaining portion that must be tiled with other multipliers.\relax }{figure.caption.8}{}}
+\newlabel{sub@fig_target_constrained_tiling@cref}{{[subfigure][2][7]7b}{[1][5][]5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Comparison of overshoot and target-constrained tiling for a 1024-bit multiplier. Overshoot tiling exceeds the target size but maximizes hierarchical structure. Target-constrained tiling stays within the target, filling the remainder with additional multipliers. Each level of the hierarchy can be implemented using Schoolbook or Karatsuba decomposition. \relax }}{5}{figure.caption.8}\protected@file@percent }
+\newlabel{fig_overshoot_target_constrained_comparison}{{7}{5}{Comparison of overshoot and target-constrained tiling for a 1024-bit multiplier. Overshoot tiling exceeds the target size but maximizes hierarchical structure. Target-constrained tiling stays within the target, filling the remainder with additional multipliers. Each level of the hierarchy can be implemented using Schoolbook or Karatsuba decomposition. \relax }{figure.caption.8}{}}
+\newlabel{fig_overshoot_target_constrained_comparison@cref}{{[figure][7][]7}{[1][5][]5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Fast Pipelined Combinational Logic}{5}{subsection.3.4}\protected@file@percent }
+\newlabel{sec_fast_pipelined_comb_logic}{{\mbox  {III-D}}{5}{Fast Pipelined Combinational Logic}{subsection.3.4}{}}
+\newlabel{sec_fast_pipelined_comb_logic@cref}{{[subsection][4][3]\mbox  {III-D}}{[1][5][]5}}
+\citation{U280SwitchingCharacteristics}
+\citation{fahmyMapDSPMaxPerformance2016,zhangIMpressLargeInteger2022}
+\citation{zhangIMpressLargeInteger2022}
+\citation{kummTilingHeuristics2020}
+\citation{kummTilingHeuristics2020}
+\@LN@col{1}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces  DSP block usage and latency trade-offs for different base sizes across target multiplier sizes (log scale y-axis). Annotations indicate the achieved sizes. The 43-bit base with Karatsuba decomposition at all levels consistently minimizes DSP usage. \relax }}{6}{figure.caption.9}\protected@file@percent }
+\newlabel{fig_pareto_frontier_all_configs}{{8}{6}{DSP block usage and latency trade-offs for different base sizes across target multiplier sizes (log scale y-axis). Annotations indicate the achieved sizes. The 43-bit base with Karatsuba decomposition at all levels consistently minimizes DSP usage. \relax }{figure.caption.9}{}}
+\newlabel{fig_pareto_frontier_all_configs@cref}{{[figure][8][]8}{[1][5][]6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-E}}Automating the Flow}{6}{subsection.3.5}\protected@file@percent }
+\@LN@col{2}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Evaluation}{6}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Experiments and Results}{6}{subsection.4.1}\protected@file@percent }
+\citation{zhangIMpressLargeInteger2022}
+\citation{zhangIMpressLargeInteger2022}
+\citation{zhangIMpressLargeInteger2022}
+\citation{kummTilingHeuristics2020}
+\citation{fahmyMapDSPMaxPerformance2016}
+\citation{zhangIMpressLargeInteger2022}
+\citation{royTileMultiplicationEfficient2014}
+\citation{pascaLargeMultipliersLessDSP2009}
+\citation{kummTilingILP2017}
+\citation{kummTilingHeuristics2020}
+\citation{kummKaratsubaRectangularMultipliers2018}
+\@LN@col{1}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Detailed comparison of different decomposition schemes for various multiplier sizes. Target-constrained tiling is used with the 77-bit base multiplier, while overshoot tiling is used with the 43-bit base.\relax }}{7}{table.caption.10}\protected@file@percent }
+\newlabel{table_decomposition_schemes}{{II}{7}{Detailed comparison of different decomposition schemes for various multiplier sizes. Target-constrained tiling is used with the 77-bit base multiplier, while overshoot tiling is used with the 43-bit base.\relax }{table.caption.10}{}}
+\newlabel{table_decomposition_schemes@cref}{{[table][2][]II}{[1][7][]7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Resource utilization for target-constrained tiling using our 77-bit base and overshoot tiling using our 43-bit base multipliers, with varying numbers of Karatsuba levels. 77-bit base is favorable for fewer Karatsuba levels, while 43-bit base benefits from deeper Karatsuba hierarchies. Note the logarithmic y-axis. \relax }}{7}{figure.caption.11}\protected@file@percent }
+\newlabel{fig_bar_comparison_dsp_area}{{9}{7}{Resource utilization for target-constrained tiling using our 77-bit base and overshoot tiling using our 43-bit base multipliers, with varying numbers of Karatsuba levels. 77-bit base is favorable for fewer Karatsuba levels, while 43-bit base benefits from deeper Karatsuba hierarchies. Note the logarithmic y-axis. \relax }{figure.caption.11}{}}
+\newlabel{fig_bar_comparison_dsp_area@cref}{{[figure][9][]9}{[1][7][]7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Latency Mitigation}{7}{subsection.4.2}\protected@file@percent }
+\@LN@col{2}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Area and Performance comparison of different implementations. Our primitive-based implementation achieves approximately 56\% higher frequency than the best among other work while using 17\% fewer DSPs and slightly fewer LUTs. \relax }}{7}{figure.caption.12}\protected@file@percent }
+\newlabel{fig_dualaxis_best_diff1024}{{10}{7}{Area and Performance comparison of different implementations. Our primitive-based implementation achieves approximately 56\% higher frequency than the best among other work while using 17\% fewer DSPs and slightly fewer LUTs. \relax }{figure.caption.12}{}}
+\newlabel{fig_dualaxis_best_diff1024@cref}{{[figure][10][]10}{[1][7][]7}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Impact of combinational logic segment size on latency and performance for 1032-bit multiplier 4-Karatsuba with 43-bit base\relax }}{7}{table.caption.13}\protected@file@percent }
+\newlabel{table_combiner_size}{{III}{7}{Impact of combinational logic segment size on latency and performance for 1032-bit multiplier 4-Karatsuba with 43-bit base\relax }{table.caption.13}{}}
+\newlabel{table_combiner_size@cref}{{[table][3][]III}{[1][7][]7}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Related Work}{7}{section.5}\protected@file@percent }
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{patelComparisonKeySize2023}{1}
+\bibcite{sarrafzadehImageRestorationFPGA2003}{2}
+\bibcite{prasannaFHEPerformanceModelingFPGA2021}{3}
+\bibcite{karatsubaOriginalPaper}{4}
+\bibcite{yapFFTquickmul2000}{5}
+\bibcite{weemsNTTHighPrecisionInteger2011}{6}
+\bibcite{zhangIMpressLargeInteger2022}{7}
+\bibcite{kummTilingHeuristics2020}{8}
+\bibcite{xilinxVirtex-4DSPExplainedFPGA}{9}
+\bibcite{ghiasiDSPEfficientCNNFPGA2020}{10}
+\bibcite{pascaFloatingPointDSPBlock2015}{11}
+\bibcite{UltraScaleArchitectureDSP2021}{12}
+\bibcite{xilinxincIPMultiplier2015}{13}
+\bibcite{royTileMultiplicationEfficient2014}{14}
+\bibcite{BeumontTilingNPComplete2002}{15}
+\bibcite{U280SwitchingCharacteristics}{16}
+\bibcite{fahmyMapDSPMaxPerformance2016}{17}
+\bibcite{pascaLargeMultipliersLessDSP2009}{18}
+\bibcite{kummTilingILP2017}{19}
+\bibcite{kummKaratsubaRectangularMultipliers2018}{20}
+\@LN@col{1}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Conclusions and Future Work}{8}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}References}{8}{section.7}\protected@file@percent }
+\@LN@col{2}
+\ttl@finishall
+\gdef \@abspage@last{8}

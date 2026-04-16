@@ -1,0 +1,11 @@
+\subsection{Automating the Whole Flow}
+To enable rapid design-space exploration, we built an automated flow that integrates the components described in the previous sections.
+A specification is provided with the target multiplication size, base multiplier dimensions, decomposition strategy (Schoolbook, Karatsuba, or mixed), and the base combinational width.
+The \textbf{Tiler} instantiates the large multiplier from the base with one level of hierarchy (Figure~\ref{fig_tiling1024_recurmax}). 
+When the target size is not an exact multiple of the base, the remaining regions are filled using DSP48E2 blocks (Section~\ref{sec_tiler}).
+Because a flat hierarchy limits Karatsuba opportunities, the \textbf{Combination Generator} constructs additional hierarchy and enumerates decomposition variants.
+
+Each variant is processed by the \textbf{Exporter}, which outputs an intermediate representation, and the \textbf{Visualizer}, which renders the decomposition graphically and checks for correct tiling (100\% coverage with no overlaps).
+The \textbf{Software Tester} then validates the intermediate representation via software simulation before hardware generation.
+After validation, the \textbf{Verilog Generator} produces optimized, synthesizable Verilog for each module and submodule along with testbenches for functional checking.
+The flow also generates Tcl scripts to run FPGA synthesis and implementation and report area/timing, and generates dataflow diagrams that annotate operations and pipeline synchronization points.

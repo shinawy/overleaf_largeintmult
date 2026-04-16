@@ -1,0 +1,57 @@
+\subsection{E-graphs and Equality Saturation}
+An e-graph (equivalence graph) is a data structure that stores equivalence relations in a compact form to extract the most optimal expression later.
+The e-graph consists of nodes, called e-nodes in the e-graph terminology. 
+Equivalent e-nodes are grouped together in e-classes where all nodes in a single e-class are equivalent. 
+E-nodes contain expressions which can be functions or variables.
+The expression is constructed by drawing an arrow from an e-node representing the function to the e-classes containing its arguments. 
+For instance, in Figure \ref{fig_egg_expr},  the node $/$ represents the expression $(*$ e-node$)/2$. Then the $*$ e-node represents the expression $a*2$. 
+Therefore, The $/$ node represents the expression $(a*2)/2$. 
+It is important to note that arrows are drawn from e-nodes to e-classes, not to other e-nodes.
+The user also defines the criteria for choosing the optimal expression in the form of a cost function that is calculated while traversing the e-graph.
+
+The construction and usage of the e-graph consists of two stages: building the e-graph based on rewrite rules until equality saturation, and extraction phase.
+Rewrite rules are defined by the user to specify a list of equivalent expressions.
+The first stage is to build the e-graph using the rules until no rewrite rule adds further information to the e-graph, in which case the e-graph has reached the equality saturation phase. 
+For example, the expression $a*2$ is equivalent to $a <<1$.
+In Figure \ref{fig_egg_div_eq}, the two expressions are represented using two separate graphs. 
+When using e-graphs, the same information can be represented in a much more compact form as shown in Figure \ref{fig_egg_div_egraphs}. 
+The second stage is meant to traverse the e-graph and extract the most optimal expression based on a cost function defined by the user. 
+The good thing about e-graphs is that it allows for non-destructive rewriting, which means it does not forget old rules, but rather only adding and growing the e-graph until saturation. 
+Moreover, given the compactness nature of e-graphs, it can represent thousands of nodes and classes without a problem.  
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.15\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{sections/figures/egg/egg_div_expr.pdf}
+        \caption{Divide Expression using E-graph}
+        \label{fig_egg_expr}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{sections/figures/egg/egg_div_mul_eq.pdf}
+        \caption{Equivalent Multiplication and Shift Left Operations as two separate graphs}
+        \label{fig_egg_div_eq}
+    \end{subfigure}
+    \hfill
+
+    \vspace{1em} % Vertical space between rows
+    
+    \begin{subfigure}{0.15\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{sections/figures/egg/egg_div_mul_egraph.pdf}
+        \caption{Equivalent Multiplication and Shift Left Operations in a Single E-graph}
+        \label{fig_egg_div_egraphs}
+    \end{subfigure}
+       \caption{Rewrite Rules in E-graphs}
+       \label{fig_egg_rewrite}
+\end{figure}
+
+Authors in \cite{panchekhaEggFastExtensible2021} introduced egg, a Rust library which implements e-graphs and equality saturation principles for easier integrations which made it a good fit for many different applications. 
+For instance, egg can be used to optimize floating point's numerical stability \cite{tatlockEggFloatingPoint2015}, and optimize linear algebra implementation \cite{danEggLinearAlgebra2020}. 
+Moreover, authors in \cite{draneAutomaticDatapathOptimization2022} designed rewrite rules and used egg to automate datapath RTL optimization.
+User only defines the functions, which is called a language in egg term, and defines the rewrite rules that needs to be performed on certain expressions. 
+For more flexibility, egg was integrated with Datalog principles so developers can create egg programs without the need to the Rust library \cite{zhangEGGLog2023}. 
+For instance, authors in \cite{shanabrookEgglogPythonPythonic2024} created python-egglog making egg even easier to write by implementing a Python abstraction layer that interacts with the Rust library. 
+Additionally, python-egglog gives users more flexibility to write a pure egglog program and interacts with it through python interface and added more functionality to create egglog programs in pythonic syntactic and functional style. 

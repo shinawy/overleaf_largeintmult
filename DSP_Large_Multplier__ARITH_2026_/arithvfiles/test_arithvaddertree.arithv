@@ -1,0 +1,20 @@
+# ============================================================================
+# Module Name: AdderTreeTest
+# Generated:   2025-12-04 
+#  Module: Adder Tree Optimization Test
+#============================================================================
+
+# Adder Tree Optimization Test Module
+AdderTreeTest(input clk [1], input A [128], input B [130], input C [135], output P [394]):
+
+    # P = (A +(B<<128) + (C<<258))
+    # Smart adder tree would convert this to zero-cost concatenation P = {C, B, A}
+    # Variable declarations
+    Shl (B, 128) B is_signed=0
+    Shl (C, 258) C is_signed=0
+    variable add_ab [259] 
+    Add (A, B) add_ab is_signed=0 op_mode=interleaved
+    Add (add_ab, C) P is_signed=0 op_mode=lockstep
+
+    TestBench: is_signed=0
+        P = A + (B << 128) + (C << 258)

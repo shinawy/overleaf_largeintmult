@@ -1,0 +1,492 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\title{2D Rectangle Tiling Problem with Complete Coverage Constraint}
+\author{Mathematical Formulation}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem Definition}
+
+We consider a 2D rectangle tiling problem where the entire area of a stock sheet must be completely covered by smaller rectangles, each with an associated cost. The objective is to minimize the total cost while ensuring complete coverage and satisfying demand constraints.
+
+\subsection{Given Parameters}
+\begin{align*}
+& W, H: \text{Width and height of the stock rectangle} \\
+& N: \text{Number of rectangle types} \\
+& \forall i \in \{1, \ldots, N\}: \\
+& \quad w_i, h_i: \text{Width and height of rectangle type } i \\
+& \quad c_i: \text{Cost per piece of type } i \\
+& \quad d_i: \text{Maximum demand for type } i \\
+& G = \{(x,y) \mid x \in \{1,\ldots,W\}, y \in \{1,\ldots,H\}\}: \text{Set of all unit cells}
+\end{align*}
+
+\section{Discrete Grid Formulation}
+
+\subsection{Additional Parameters}
+\begin{align*}
+& P_i: \text{Set of valid positions for rectangle type } i \\
+& T = \{0, 1\}: \text{Set of orientations (0 = normal, 1 = rotated 90°)} \\
+& A(i,p,t): \text{Set of cells covered by rectangle type } i \text{ at position } p \text{ with orientation } t \\
+& {1}_{(x,y) \in A(i,p,t)}: \text{Indicator function (1 if cell } (x,y) \text{ is covered, 0 otherwise)} \\
+& \text{effective\_width}(i,t) = 
+\begin{cases}
+w_i & \text{if } t = 0 \\
+h_i & \text{if } t = 1 \text{ and rotation allowed}
+\end{cases} \\
+& \text{effective\_height}(i,t) = 
+\begin{cases}
+h_i & \text{if } t = 0 \\
+w_i & \text{if } t = 1 \text{ and rotation allowed}
+\end{cases}
+\end{align*}
+
+\subsection{Decision Variables}
+\begin{align*}
+x_{ipt} = 
+\begin{cases}
+1 & \text{if rectangle type } i \text{ is placed at position } p \text{ with orientation } t \\
+0 & \text{otherwise}
+\end{cases}
+\quad \forall i \in \{1,\ldots,N\}, \forall p \in P_i, \forall t \in T
+\end{align*}
+
+\subsection{Objective Function}
+\begin{align*}
+\text{Minimize } Z = \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} c_i \cdot x_{ipt}
+\end{align*}
+
+\subsection{Constraints}
+\begin{align}
+&\text{Coverage:} & \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} {1}_{(x,y) \in A(i,p,t)} \cdot x_{ipt} = 1 \quad \forall (x,y) \in G \\
+&\text{Demand:} & \sum_{p \in P_i} \sum_{t \in T} x_{ipt} \leq d_i \quad \forall i \in \{1, \ldots, N\} \\
+&\text{Non-overlap:} & \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} {1}_{(x,y) \in A(i,p,t)} \cdot x_{ipt} \leq 1 \quad \forall (x,y) \in G \\
+&\text{Binary:} & x_{ipt} \in \{0,1\} \quad \forall i \in \{1,\ldots,N\}, \forall p \in P_i, \forall t \in T
+\end{align}
+
+\section{Set Partitioning Formulation}
+
+\subsection{Parameters}
+\begin{align*}
+& R: \text{Set of all valid covering patterns} \\
+& \forall j \in R: \\
+& \quad a_{ij}: \text{Number of rectangles of type } i \text{ used in pattern } j \\
+& \quad \text{cost}_j = \sum_{i=1}^{N} a_{ij} \cdot c_i: \text{Total cost of pattern } j
+\end{align*}
+
+\subsection{Decision Variables}
+\begin{align*}
+y_j = 
+\begin{cases}
+1 & \text{if pattern } j \text{ is selected} \\
+0 & \text{otherwise}
+\end{cases}
+\quad \forall j \in R
+\end{align*}
+
+\subsection{Objective Function}
+\begin{align*}
+\text{Minimize } Z = \sum_{j \in R} \text{cost}_j \cdot y_j
+\end{align*}
+
+\subsection{Constraints}
+\begin{align}
+&\text{Pattern Selection:} & \sum_{j \in R} y_j = 1 \\
+&\text{Demand:} & \sum_{j \in R} a_{ij} \cdot y_j \leq d_i \quad \forall i \in \{1, \ldots, N\} \\
+&\text{Binary:} & y_j \in \{0,1\} \quad \forall j \in R
+\end{align}
+
+\section{Necessary Feasibility Conditions}
+
+\subsection{Area Conservation}
+\begin{align}
+W \times H = \sum_{i=1}^{N} k_i \times (w_i \times h_i)
+\end{align}
+for some integers $k_1, k_2, \ldots, k_N$ satisfying $0 \leq k_i \leq d_i$ for all $i \in \{1, \ldots, N\}$.
+
+\subsection{Divisibility Condition}
+\begin{align}
+\text{GCD}(w_1h_1, w_2h_2, \ldots, w_Nh_N) \mid (W \times H)
+\end{align}
+where $\text{GCD}$ denotes the greatest common divisor and $\mid$ denotes divisibility.
+
+\section{Notes on Formulations}
+
+\begin{itemize}
+\item The coverage constraint (1) in the discrete grid formulation ensures every unit cell is covered by exactly one rectangle.
+\item The non-overlap constraint (3) is technically redundant given the coverage constraint but may help with solver performance.
+\item The set partitioning formulation has the advantage of automatically handling coverage and non-overlap through pattern generation, but requires column generation for practical implementation.
+\item Both formulations are NP-hard and may require heuristic methods for large instances.
+\end{itemize}
+
+\section{New Problem Definition with Priority on Width}
+
+We consider a 2D rectangle tiling problem where the entire area of a stock sheet must be completely covered by smaller rectangles, each with an associated cost. The objective is to minimize total cost while ensuring complete coverage, satisfying demand constraints, and prioritizing rectangles of certain widths.
+
+\subsection{Given Parameters}
+\begin{align*}
+& W, H: \text{Width and height of the stock rectangle} \\
+& N: \text{Number of rectangle types} \\
+& \forall i \in \{1, \ldots, N\}: \\
+& \quad w_i, h_i: \text{Width and height of rectangle type } i \\
+& \quad c_i: \text{Cost per piece of type } i \\
+& \quad d_i: \text{Maximum demand for type } i \\
+& G = \{(x,y) \mid x \in \{1,\ldots,W\}, y \in \{1,\ldots,H\}\}: \text{Set of all unit cells} \\
+& S_{\text{priority}} \subset \{1,\ldots,N\}: \text{Set of priority rectangle types} \\
+& \alpha: \text{Minimum proportion of priority rectangles to use} \\
+& M: \text{Large positive constant for prioritization}
+\end{align*}
+
+\section{Base Formulation: Complete Coverage Constraint}
+
+\subsection{Discrete Grid Formulation}
+
+\subsubsection{Additional Parameters}
+\begin{align*}
+& P_i: \text{Set of valid positions for rectangle type } i \\
+& T = \{0, 1\}: \text{Set of orientations (0 = normal, 1 = rotated 90°)} \\
+& A(i,p,t): \text{Set of cells covered by rectangle type } i \text{ at position } p \text{ with orientation } t \\
+& \mathbb{1}_{(x,y) \in A(i,p,t)}: \text{Indicator function (1 if cell covered, 0 otherwise)}
+\end{align*}
+
+\subsubsection{Decision Variables}
+\begin{align*}
+x_{ipt} = 
+\begin{cases}
+1 & \text{if rectangle type } i \text{ is placed at position } p \text{ with orientation } t \\
+0 & \text{otherwise}
+\end{cases}
+\quad \forall i \in \{1,\ldots,N\}, \forall p \in P_i, \forall t \in T
+\end{align*}
+
+\subsubsection{Objective Function}
+\begin{align*}
+\text{Minimize } Z = \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} c_i \cdot x_{ipt}
+\end{align*}
+
+\subsubsection{Constraints}
+\begin{align}
+&\text{Coverage:} & \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} \mathbb{1}_{(x,y) \in A(i,p,t)} \cdot x_{ipt} = 1 \quad \forall (x,y) \in G \\
+&\text{Demand:} & \sum_{p \in P_i} \sum_{t \in T} x_{ipt} \leq d_i \quad \forall i \in \{1, \ldots, N\} \\
+&\text{Binary:} & x_{ipt} \in \{0,1\} \quad \forall i \in \{1,\ldots,N\}, \forall p \in P_i, \forall t \in T
+\end{align}
+
+\section{Width Priority Strategies}
+
+\subsection{Approach 1: Lexicographic Optimization (Two-Phase)}
+
+\subsubsection{Phase 1: Maximize Priority Rectangle Usage}
+\begin{align*}
+\text{Maximize } Z_1 = \sum_{i \in S_{\text{priority}}} \sum_{p \in P_i} \sum_{t \in T} w_i \cdot h_i \cdot x_{ipt}
+\end{align*}
+Subject to constraints (1-3). Let $Z_1^*$ be the optimal value.
+
+\subsubsection{Phase 2: Minimize Cost with Priority Achievement}
+\begin{align*}
+\text{Minimize } Z_2 = \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} c_i \cdot x_{ipt}
+\end{align*}
+Subject to constraints (1-3) and:
+\begin{align}
+\sum_{i \in S_{\text{priority}}} \sum_{p \in P_i} \sum_{t \in T} w_i \cdot h_i \cdot x_{ipt} \geq Z_1^*
+\end{align}
+
+\subsection{Approach 2: Weighted Objective Function}
+\begin{align*}
+\text{Minimize } Z = \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} \left(c_i - M \cdot \mathbb{1}_{i \in S_{\text{priority}}}\right) \cdot x_{ipt}
+\end{align*}
+Subject to constraints (1-3).
+
+\subsection{Approach 3: Sequential Placement Constraints}
+\begin{align*}
+&\text{For each priority rectangle type } i \in S_{\text{priority}}: \\
+&\sum_{p \in P_i^{\text{left}}} \sum_{t \in T} x_{ipt} \geq \alpha \cdot \left(\sum_{p \in P_i} \sum_{t \in T} x_{ipt}\right) \\
+&\text{where } P_i^{\text{left}} = \{p = (p_x, p_y) \mid p_x \leq W_{\text{threshold}}\}
+\end{align*}
+
+\subsection{Approach 4: Priority Usage Constraint}
+Add decision variable:
+\begin{align*}
+u = \sum_{i \in S_{\text{priority}}} \sum_{p \in P_i} \sum_{t \in T} x_{ipt}
+\end{align*}
+Add constraint:
+\begin{align}
+u \geq \alpha \cdot \min\left(\sum_{i \in S_{\text{priority}}} d_i, \left\lfloor \frac{W \times H}{\min_{i \in S_{\text{priority}}}(w_i h_i)} \right\rfloor\right)
+\end{align}
+
+\section{Guillotine Cutting with Width Priority}
+
+\subsection{Recursive Guillotine Formulation}
+\begin{align*}
+f(w, h) = \min \left\{ 
+\begin{array}{l}
+\min\limits_{i \in S_{\text{priority}}} \left\{ c_i + f(w - w_i, h) + f(w_i, h - h_i) \right\}, \\
+\min\limits_{i \notin S_{\text{priority}}} \left\{ c_i + f(w - w_i, h) + f(w_i, h - h_i) \right\}, \\
+\min\limits_{i \in S_{\text{priority}}} \left\{ c_i + f(w, h - h_i) + f(w - w_i, h_i) \right\}, \\
+\min\limits_{i \notin S_{\text{priority}}} \left\{ c_i + f(w, h - h_i) + f(w - w_i, h_i) \right\}
+\end{array}
+\right.
+\end{align*}
+With base case: $f(w, h) = 0$ if $w \leq 0$ or $h \leq 0$
+
+\section{Heuristic Approaches}
+
+\subsection{Greedy Width-First Algorithm}
+\begin{align*}
+&\text{1. Sort rectangles: } R_{\text{sorted}} = [S_{\text{priority}}, S_{\text{others}}] \\
+&\text{2. For each rectangle } r \in R_{\text{sorted}}: \\
+&\quad \text{Find position } p^* = \underset{p \in \text{FeasiblePositions}}{\text{argmin}} \{\text{waste}(p)\} \\
+&\quad \text{Place rectangle at } p^* \\
+&\text{3. Repeat until all rectangles placed or no feasible positions}
+\end{align*}
+
+\subsection{Width-Strip Heuristic}
+\begin{align*}
+&\text{For } x = 0 \text{ to } W - w_{\text{priority}}: \\
+&\quad \text{Create strip } [x, x + w_{\text{priority}}] \times [0, H] \\
+&\quad \text{Pack strip with priority rectangles using 1D bin packing} \\
+&\quad \text{Fill remaining areas with other rectangles}
+\end{align*}
+
+\subsection{Adaptive Priority Weights}
+\begin{align*}
+&\text{Define priority weight: } \omega_i = 
+\begin{cases}
+1 + \beta & \text{if } i \in S_{\text{priority}} \\
+1 & \text{otherwise}
+\end{cases} \\
+&\text{Modified objective: } \min \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} \frac{c_i}{\omega_i} \cdot x_{ipt}
+\end{align*}
+
+\section{Set Partitioning Formulation with Priority}
+
+\subsection{Parameters}
+\begin{align*}
+& R: \text{Set of all valid covering patterns} \\
+& \forall j \in R: \\
+& \quad a_{ij}: \text{Number of rectangles of type } i \text{ used in pattern } j \\
+& \quad \text{cost}_j = \sum_{i=1}^{N} a_{ij} \cdot c_i: \text{Total cost of pattern } j \\
+& \text{priority\_score}_j = \sum_{i \in S_{\text{priority}}} a_{ij}: \text{Priority score of pattern } j
+\end{align*}
+
+\subsection{Decision Variables}
+\begin{align*}
+y_j = 
+\begin{cases}
+1 & \text{if pattern } j \text{ is selected} \\
+0 & \text{otherwise}
+\end{cases}
+\quad \forall j \in R
+\end{align*}
+
+\subsection{Lexicographic Objectives}
+\begin{align*}
+&\text{Primary: Maximize } \sum_{j \in R} \text{priority\_score}_j \cdot y_j \\
+&\text{Secondary: Minimize } \sum_{j \in R} \text{cost}_j \cdot y_j
+\end{align*}
+
+\subsection{Constraints}
+\begin{align}
+&\text{Pattern Selection:} & \sum_{j \in R} y_j = 1 \\
+&\text{Demand:} & \sum_{j \in R} a_{ij} \cdot y_j \leq d_i \quad \forall i \in \{1, \ldots, N\} \\
+&\text{Binary:} & y_j \in \{0,1\} \quad \forall j \in R
+\end{align}
+
+\section{Hybrid Approach (Recommended)}
+
+\subsection{Three-Stage Solution Process}
+\begin{align*}
+&\text{Stage 1: Use greedy algorithm to place priority rectangles} \\
+&\text{Stage 2: Solve MILP for remaining area with other rectangles} \\
+&\text{Stage 3: If infeasible, relax priority constraint and resolve}
+\end{align*}
+
+\subsection{Mathematical Formulation}
+\begin{align*}
+&\text{Let } A_{\text{used}} = \bigcup_{i \in S_{\text{priority}}} \bigcup_{p \in P_i} \bigcup_{t \in T} A(i,p,t) \cdot x_{ipt} \\
+&\text{Remaining area: } A_{\text{remaining}} = G \setminus A_{\text{used}} \\
+&\text{Solve reduced problem on } A_{\text{remaining}} \text{ with rectangles } S_{\text{others}}
+\end{align*}
+
+\section{Implementation Recommendations}
+
+\begin{itemize}
+\item \textbf{For exact solutions}: Use Lexicographic Optimization (Approach 1)
+\item \textbf{For large problems}: Use Greedy Width-Strip Heuristic
+\item \textbf{For balanced performance}: Use Weighted Objective (Approach 2) with careful tuning
+\item \textbf{For production systems}: Use the Hybrid Approach
+\end{itemize}
+
+\section{Necessary Feasibility Conditions}
+
+\begin{align}
+&\text{Area Conservation: } W \times H = \sum_{i=1}^{N} k_i \times (w_i \times h_i) \\
+&\text{for integers } k_1, \ldots, k_N \text{ with } 0 \leq k_i \leq d_i \\
+&\text{Divisibility: } \text{GCD}(w_1h_1, \ldots, w_Nh_N) \mid (W \times H) \\
+&\text{Priority Feasibility: } \sum_{i \in S_{\text{priority}}} d_i \cdot (w_i \times h_i) \geq \alpha \cdot (W \times H)
+\end{align}
+
+
+\section{Karatsuba-like Symmetry Concept}
+
+The Karatsuba multiplication algorithm exploits symmetry by recognizing that certain computations can be reused. In our 2D tiling context, this translates to favoring symmetric placements of rectangles to create reusable patterns and reduce computational complexity in the cutting process.
+
+\section{Mathematical Formulation with Symmetry Constraints}
+
+\subsection{Additional Parameters and Sets}
+\begin{align*}
+& \mathcal{P}_{\text{sym}} \subset \{1,\ldots,N\}: \text{Set of rectangle types for symmetry consideration} \\
+& \mathcal{R}_{\text{pairs}} = \{(i,j) \mid i,j \in \mathcal{P}_{\text{sym}}, i \leq j\}: \text{Pairs for symmetry consideration} \\
+& \lambda_{\text{sym}}: \text{Symmetry bonus weight} \\
+& \lambda_{\text{self}}: \text{Self-symmetry bonus weight} \\
+& \lambda_{\text{cross}}: \text{Cross-symmetry bonus weight}
+\end{align*}
+
+\subsection{Symmetry Decision Variables}
+\begin{align*}
+& s_{ij}^{xx}: \text{Binary = 1 if rectangles of types } i \text{ and } j \text{ are placed symmetrically along x-axis} \\
+& s_{ij}^{yy}: \text{Binary = 1 if rectangles of types } i \text{ and } j \text{ are placed symmetrically along y-axis} \\
+& s_{ij}^{xy}: \text{Binary = 1 if rectangles of types } i \text{ and } j \text{ are placed in cross-symmetric positions} \\
+& t_{i}^{xx}: \text{Binary = 1 if rectangle type } i \text{ has self-symmetry along x-axis} \\
+& t_{i}^{yy}: \text{Binary = 1 if rectangle type } i \text{ has self-symmetry along y-axis}
+\end{align*}
+
+\subsection{Enhanced Objective Function}
+\begin{align*}
+\text{Minimize } Z = & \sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} c_i \cdot x_{ipt} \\
+& - \lambda_{\text{sym}} \cdot \left( \sum_{(i,j) \in \mathcal{R}_{\text{pairs}}} \left( s_{ij}^{xx} + s_{ij}^{yy} + s_{ij}^{xy} \right) \right) \\
+& - \lambda_{\text{self}} \cdot \left( \sum_{i \in \mathcal{P}_{\text{sym}}} \left( t_{i}^{xx} + t_{i}^{yy} \right) \right)
+\end{align*}
+
+\section{Symmetry Constraints}
+
+\subsection{X-Axis Symmetry Constraints}
+\begin{align}
+& s_{ij}^{xx} \leq \sum_{p=(p_x,p_y) \in P_i} \sum_{q=(q_x,q_y) \in P_j} x_{ipt} \cdot x_{jqt} \cdot \mathbb{1}_{p_x = q_x} \cdot \mathbb{1}_{|p_y - (H - h_j - q_y)| \leq \epsilon} \\
+& \forall (i,j) \in \mathcal{R}_{\text{pairs}}, \forall t \in T
+\end{align}
+
+\subsection{Y-Axis Symmetry Constraints}
+\begin{align}
+& s_{ij}^{yy} \leq \sum_{p=(p_x,p_y) \in P_i} \sum_{q=(q_x,q_y) \in P_j} x_{ipt} \cdot x_{jqt} \cdot \mathbb{1}_{p_y = q_y} \cdot \mathbb{1}_{|p_x - (W - w_j - q_x)| \leq \epsilon} \\
+& \forall (i,j) \in \mathcal{R}_{\text{pairs}}, \forall t \in T
+\end{align}
+
+\subsection{Cross-Symmetry Constraints (Karatsuba Pattern)}
+\begin{align}
+& s_{ij}^{xy} \leq \sum_{p=(p_x,p_y) \in P_i} \sum_{q=(q_x,q_y) \in P_j} x_{ipt} \cdot x_{jqt} \cdot \mathbb{1}_{p_x = q_y} \cdot \mathbb{1}_{p_y = q_x} \\
+& \forall (i,j) \in \mathcal{R}_{\text{pairs}}, \forall t \in T
+\end{align}
+
+\subsection{Self-Symmetry Constraints}
+\begin{align}
+& t_{i}^{xx} \leq \sum_{p=(p_x,p_y) \in P_i} \sum_{q=(q_x,q_y) \in P_i} x_{ipt} \cdot x_{iqt} \cdot \mathbb{1}_{p_x = q_x} \cdot \mathbb{1}_{|p_y - (H - h_i - q_y)| \leq \epsilon} \\
+& \forall i \in \mathcal{P}_{\text{sym}}, \forall t \in T
+\end{align}
+
+\begin{align}
+& t_{i}^{yy} \leq \sum_{p=(p_x,p_y) \in P_i} \sum_{q=(q_x,q_y) \in P_i} x_{ipt} \cdot x_{iqt} \cdot \mathbb{1}_{p_y = q_y} \cdot \mathbb{1}_{|p_x - (W - w_i - q_x)| \leq \epsilon} \\
+& \forall i \in \mathcal{P}_{\text{sym}}, \forall t \in T
+\end{align}
+
+\section{Pattern-Based Karatsuba Formulation}
+
+\subsection{Karatsuba Pattern Templates}
+Define pattern templates that capture the Karatsuba symmetry:
+
+\begin{align}
+& \text{Template } K_1: \text{Rectangles at } (i,j), (j,i), (i,i), (j,j) \\
+& \text{Template } K_2: \text{Rectangles at } (i,j), (j,i) \text{ with complementary positions} \\
+& \text{Template } K_3: \text{Self-symmetric blocks along diagonal}
+\end{align}
+
+\subsection{Pattern Variables}
+\begin{align}
+& k_{m}^{ij}: \text{Binary = 1 if Karatsuba pattern } m \text{ is used for rectangle types } i,j \\
+& \text{Pattern bonus: } B_m = \lambda_{\text{sym}} \cdot \beta_m \cdot k_{m}^{ij}
+\end{align}
+
+\subsection{Pattern Implementation Constraints}
+\begin{align}
+& k_{1}^{ij} \leq \frac{1}{4} \left( \sum_{p \in P_i} x_{ip} + \sum_{p \in P_j} x_{jp} + \sum_{p \in P_i} x_{ip}^{\text{sym}} + \sum_{p \in P_j} x_{jp}^{\text{sym}} \right) \\
+& \text{where } x_{ip}^{\text{sym}} \text{ represents symmetric counterpart of placement at } p
+\end{align}
+
+\section{Recursive Karatsuba Decomposition}
+
+\subsection{Recursive Symmetric Cutting}
+\begin{align}
+f(W,H) = \min \Bigg\{ & \min_{\substack{i,j \in \mathcal{P}_{\text{sym}} \\ \text{Karatsuba feasible}}} \left\{ c_i + c_j + \lambda_{\text{sym}} + f(W-w_i, H-h_j) + f(w_i, h_j) \right\}, \\
+& \min_{i=1}^{N} \left\{ c_i + f(W-w_i, H) + f(w_i, H-h_i) \right\} \Bigg\}
+\end{align}
+
+\subsection{Karatsuba Feasibility Condition}
+\begin{align}
+\text{Karatsuba feasible} \iff & (w_i = w_j) \lor (h_i = h_j) \lor (w_i = h_j) \lor (h_i = w_j) \\
+& \land \text{ symmetric positions available}
+\end{align}
+
+\section{Coordinate-Based Symmetry Encoding}
+
+\subsection{Symmetric Position Mapping}
+Define symmetric position functions:
+\begin{align}
+& \text{sym}_x(p) = (W - w - p_x, p_y) \\
+& \text{sym}_y(p) = (p_x, H - h - p_y) \\
+& \text{sym}_{xy}(p) = (p_y, p_x) \quad \text{(Karatsuba cross-symmetry)}
+\end{align}
+
+\subsection{Symmetry Linking Constraints}
+\begin{align}
+& x_{ipt} \leq \sum_{q = \text{sym}_x(p)} x_{jqt} + (1 - s_{ij}^{xx}) \quad \forall (i,j) \in \mathcal{R}_{\text{pairs}} \\
+& x_{ipt} \leq \sum_{q = \text{sym}_y(p)} x_{jqt} + (1 - s_{ij}^{yy}) \quad \forall (i,j) \in \mathcal{R}_{\text{pairs}} \\
+& x_{ipt} \leq \sum_{q = \text{sym}_{xy}(p)} x_{jqt} + (1 - s_{ij}^{xy}) \quad \forall (i,j) \in \mathcal{R}_{\text{pairs}}
+\end{align}
+
+\section{Enhanced Greedy with Karatsuba Priority}
+
+\subsection{Karatsuba-Aware Placement Algorithm}
+\begin{align}
+&\text{1. Identify candidate pairs } (i,j) \text{ with compatible dimensions} \\
+&\text{2. Sort by symmetry score: } \text{score}_{ij} = \lambda_{\text{sym}} \cdot \mathbb{1}_{w_i=w_j} + \lambda_{\text{sym}} \cdot \mathbb{1}_{h_i=h_j} + \lambda_{\text{cross}} \cdot \mathbb{1}_{w_i=h_j} \\
+&\text{3. For each candidate pair, attempt symmetric placement:} \\
+&\quad \text{Place } i \text{ at } (x,y) \Rightarrow \text{ automatically place } j \text{ at sym}_x(x,y), \text{sym}_y(x,y), \text{ or } \text{sym}_{xy}(x,y) \\
+&\text{4. Fill remaining areas with individual placements}
+\end{align}
+
+\section{Complete Integrated Formulation}
+
+\subsection{Combined Objective Function}
+\begin{align}
+\text{Minimize } Z = & \underbrace{\sum_{i=1}^{N} \sum_{p \in P_i} \sum_{t \in T} c_i \cdot x_{ipt}}_{\text{Cost}} \\
+& - \underbrace{\lambda_{\text{sym}} \cdot \sum_{(i,j) \in \mathcal{R}_{\text{pairs}}} \left( s_{ij}^{xx} + s_{ij}^{yy} + s_{ij}^{xy} \right)}_{\text{Pair symmetry bonus}} \\
+& - \underbrace{\lambda_{\text{self}} \cdot \sum_{i \in \mathcal{P}_{\text{sym}}} \left( t_{i}^{xx} + t_{i}^{yy} \right)}_{\text{Self-symmetry bonus}} \\
+& - \underbrace{\lambda_{\text{pattern}} \cdot \sum_{m} \sum_{(i,j)} \beta_m \cdot k_{m}^{ij}}_{\text{Pattern bonus}}
+\end{align}
+
+\subsection{Complete Constraint Set}
+\begin{align}
+&\text{Coverage: } (1) \\
+&\text{Demand: } (2) \\
+&\text{Binary: } (3) \\
+&\text{Symmetry linking: } (4)-(9) \\
+&\text{Pattern implementation: } (10)-(15)
+\end{align}
+
+\section{Implementation Notes}
+
+\begin{itemize}
+\item Use small $\epsilon > 0$ for numerical tolerance in symmetry constraints
+\item The symmetry bonuses $\lambda$ parameters control the trade-off between cost minimization and pattern regularity
+\item For large instances, use the greedy Karatsuba-aware algorithm first, then refine with MILP
+\item Consider precomputing symmetric position pairs to reduce model complexity
+\end{itemize}
+
+
+\end{document}
+
+

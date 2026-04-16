@@ -1,0 +1,11 @@
+mult_size,base_size,decomposition_scheme,grid,module_type,LUTs,FFRegisters,DSPs,maxClkFreqTillNow,Delay,base_name,mult_side,mult_area,theoretical_min_dsps,dsp_waste,lut_efficiency,ff_efficiency,dsp_efficiency
+64x64,63,Base,,Standalone,219,722,16,899,18,Base 63,64,4096,9.27,6.73,18.7,5.67,256.0
+126x126,63,KAAS,2x2,Standalone,1826,5349,48,933,26,Base 63,126,15876,35.92,12.08,8.69,2.97,330.75
+126x126,63,SB,2x2,Standalone,1272,4892,64,862,23,Base 63,126,15876,35.92,28.08,12.48,3.25,248.06
+189x189,63,KAAS,3x3,Standalone,4320,13344,96,803,30,Base 63,189,35721,80.82,15.18,8.27,2.68,372.09
+189x189,63,SB,3x3,Standalone,3319,11658,144,751,27,Base 63,189,35721,80.82,63.18,10.76,3.06,248.06
+78x78,77,Base,,Standalone,490,1386,14,1026,14,Base 77,78,6084,13.76,0.24,12.42,4.39,434.57
+154x154,77,KAAS,2x2,Standalone,3026,6444,42,953,28,Base 77,154,23716,53.66,-11.66,7.84,3.68,564.67
+154x154,77,SB,2x2,Standalone,2599,5292,56,870,21,Base 77,154,23716,53.66,2.34,9.13,4.48,423.5
+231x231,77,KAAS,3x3,Standalone,7165,15031,84,860,37,Base 77,231,53361,120.73,-36.73,7.45,3.55,635.25
+231x231,77,SB,3x3,Standalone,6674,11889,126,795,30,Base 77,231,53361,120.73,5.27,8.0,4.49,423.5
