@@ -1,0 +1,111 @@
+% Single DSP Slice (colors should be defined before including this file)
+
+% DSP Slice box
+\draw[thick, fill=dspblue, rounded corners=3pt] (0,0.7) rectangle (4,6.5);
+
+% Input ports - top (A, B, C only)
+\fill (1,6.5) circle (2pt);
+\node[left, font=\tiny\bfseries] at (1,6.3) {$A$};
+\fill (2,6.5) circle (2pt);
+\node[left, font=\tiny\bfseries] at (2,6.3) {$B$};
+\fill (3,6.5) circle (2pt);
+\node[left, font=\tiny\bfseries] at (3,6.3) {$C$};
+
+% Cascade ports - sides
+\fill (0,4.0) circle (2pt);
+\node[right, font=\tiny\bfseries] at (0.05,4.2) {PCIN};
+
+% Input connections from circles on perimeter
+\draw (1,6.5) -- (1,6.15);
+\draw (2,6.5) -- (2,6.15);
+\draw (3,6.5) -- (3,6.15);
+
+% Registers for A and B (back to back, stacked vertically)
+\node[draw, thick, minimum width=0.6cm, minimum height=0.3cm] (regA1) at (1,6) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regA1.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+\node[draw, thick, minimum width=0.6cm, minimum height=0.3cm] (regA2) at (1,5.5) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regA2.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+\node[draw, thick, minimum width=0.6cm, minimum height=0.3cm] (regB1) at (2,6) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regB1.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+\node[draw, thick, minimum width=0.6cm, minimum height=0.3cm] (regB2) at (2,5.5) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regB2.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+
+% Connect registers vertically (A1 to A2, B1 to B2)
+\draw (1,5.85) -- (1,5.65);
+\draw (2,5.85) -- (2,5.65);
+
+% Connections from A and B registers separately to multiplier
+% A connects from left side
+\draw (1,5.35) -- (1,4.8) -- (1.1,4.8);
+% B connects from right side
+\draw (2,5.35) -- (2,4.8) -- (1.9,4.8);
+
+% Multiplier
+\node[draw, thick, circle, minimum size=0.8cm] (mult) at (1.5,4.8) {$\times$};
+
+% Register after multiplier
+\node[draw, thick, minimum width=0.6cm, minimum height=0.3cm] (regMult) at (1.5,4.0) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regMult.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+% Register on C path (same horizontal line)
+\node[draw, thick, minimum width=0.6cm, minimum height=0.3cm] (regC) at (3,4.0) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regC.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+
+% Connection from multiplier to register
+\draw (1.5,4.4) -- (1.5,4.15);
+% Connection from C input to C register, then to W mux
+\draw (3,6.5) -- (3,4.15);
+\draw (3,3.85) -- (3,3.2);
+
+% Multiplexers (trapezoids) - W, X, Y, Z from right to left
+\node[draw, thick, trapezium, trapezium angle=70, minimum width=0.3cm, minimum height=0.25cm, shape border rotate=180, font=\tiny] (muxW) at (3.2,3.0) {W};
+\node[draw, thick, trapezium, trapezium angle=70, minimum width=0.3cm, minimum height=0.25cm, shape border rotate=180, font=\tiny] (muxX) at (2.4,3.0) {X};
+\node[draw, thick, trapezium, trapezium angle=70, minimum width=0.3cm, minimum height=0.25cm, shape border rotate=180, font=\tiny] (muxY) at (1.6,3.0) {Y};
+\node[draw, thick, trapezium, trapezium angle=70, minimum width=0.3cm, minimum height=0.25cm, shape border rotate=180, font=\tiny] (muxZ) at (0.8,3.0) {Z};
+
+% Connections from registers to multiplexers
+% C reg to W (left input) - already drawn above, but needs to reach mux
+\draw (3,3.85) -- (3,3.18);
+% Zero input to W (right input) - straight line (shorter)
+\draw (3.3,3.5) -- (3.3,3.18);
+\node[font=\tiny, right] at (3.35,3.5) {0};
+% Mul reg to X
+\draw (1.5,3.85) -- (1.5,3.5) -- (2.4,3.5) -- (2.4,3.18);
+% Mul reg to Y
+\draw (1.5,3.5) -- (1.6,3.5) -- (1.6,3.18);
+
+% PCIN to Z with two branches
+\draw (0,4.0) -- (0.3,4.0);
+% Normal branch to Z (left input) - better spacing
+\draw (0.3,4.0) -- (0.3,3.35) -- (0.65,3.35) -- (0.65,3.18);
+% Shifted branch with >>17 label (middle input) - centered
+\draw (0.3,4.0) -- (0.3,3.8) -- (0.8,3.8) -- (0.8,3.18);
+\node[font=\tiny, right] at (0.35,3.92) {>>17};
+% Zero input to Z (right input) - better spacing
+\draw (0.95,3.5) -- (0.95,3.18);
+\node[font=\tiny, right] at (1.0,3.5) {0};
+
+% ALU icon
+\node (alu) at (2,2.3) {\includegraphics[width=0.8cm]{alu_icon}};
+
+% Connections from multiplexers to ALU
+% W from right side
+\draw (3.2,2.82) -- (3.2,2.3) -- (2.38,2.3);
+% Z from left side
+\draw (0.8,2.82) -- (0.8,2.3) -- (1.62,2.3);
+% X from top right - straight down then 90 degrees left to ALU
+\draw (2.4,2.82) -- (2.4,2.53) -- (2.28,2.53);
+% Y from top left - straight down then 90 degrees right to ALU
+\draw (1.6,2.82) -- (1.6,2.53) -- (1.72,2.53);
+
+% Register after ALU
+\node[draw, thick, minimum width=0.6cm, minimum height=0.3cm] (regALU) at (2,1.5) {};
+\fill ([xshift=-0.3cm, yshift=0.15cm]regALU.center) -- ++(0.15cm,0) -- ++(-0.075cm,-0.089cm) -- cycle;
+\draw (2,1.92) -- (2,1.65);
+
+% Outputs from register: P from middle of right half, PCOUT from middle of left half
+\draw (2.15,1.35) -- (2.15,0.7);
+\fill (2.15,0.7) circle (2pt);
+\node[right, font=\tiny\bfseries] at (2.15,1.0) {$P$};
+\draw (1.85,1.35) -- (1.85,0.7);
+\fill (1.85,0.7) circle (2pt);
+\node[left, font=\tiny\bfseries] at (1.85,1.0) {PCOUT};

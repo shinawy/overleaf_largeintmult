@@ -1,0 +1,141 @@
+% TikZ figure for tiling comparison - Exact tiling 1024x1024 (924x924 core) with 77x77 base
+
+% Define custom colors from new palette
+\definecolor{gray}{HTML}{c8c8c8}
+\definecolor{gold}{HTML}{f0c571}
+\definecolor{teal}{HTML}{59a89c}
+\definecolor{blue}{HTML}{0b81a2}
+\definecolor{red}{HTML}{e25759}
+\definecolor{darkred}{HTML}{9d2c00}
+\definecolor{purple}{HTML}{7E4794}
+\definecolor{green}{HTML}{36b700}
+
+\begin{tikzpicture}[
+    scale=1,
+    every node/.style={font=\small},
+    level1/.style={draw, line width=1.2pt, fill=blue!20},
+    level2/.style={draw, line width=1.0pt, fill=green!20},
+    level3/.style={draw, line width=0.8pt, fill=orange!20},
+    level4/.style={draw, line width=0.6pt, fill=purple!20},
+    base/.style={draw, line width=0.5pt, fill=red!30},
+    popup/.style={draw, line width=2pt, fill=yellow!10, dashed},
+    connector/.style={line width=1.5pt, red}
+]
+
+% Level 0: Main 924x924 square divided into 2x2 (4 squares of 462x462)
+\begin{scope}[local bounding box=mainlevel]
+    % Size proportional to 1032 tiling: 1024/1032 * 2.8 = 2.778
+    \def\mainsize{2.778}
+    \def\halfsize{1.389}
+    \pgfmathsetmacro{\expansion}{100/924*\mainsize}
+    
+    % Draw 2x2 grid
+    \draw[draw, line width=0.8pt, fill=red] (0, 0) rectangle (\halfsize, \halfsize);
+    
+    \draw[draw, line width=0.8pt, fill=gold] (\halfsize, 0) rectangle (\mainsize, \halfsize);
+    
+    \draw[draw, line width=0.8pt, fill=red] (0, \halfsize) rectangle (\halfsize, \mainsize);
+    
+    \draw[draw, line width=0.8pt, fill=red] (\halfsize, \halfsize) rectangle (\mainsize, \mainsize);
+    
+    % Outer border for 924
+    \draw[line width=1.2pt, black] (0,0) rectangle (\mainsize, \mainsize);
+    
+    % Expansion areas to 1024
+    % Top rectangle (924 × 100)
+    \draw[line width=0.8pt, black, fill=darkred, pattern=north east lines, pattern color=darkred] (0, \mainsize) rectangle (\mainsize, \mainsize+\expansion);
+    
+    % Left rectangle (100 × 1024)
+    \draw[line width=0.8pt, black, fill=darkred, pattern=north west lines, pattern color=darkred] (-\expansion, 0) rectangle (0, \mainsize+\expansion);
+    
+    % Outer border for 1024
+    \draw[line width=1.2pt, blue, dashed] (-\expansion,0) rectangle (\mainsize, \mainsize+\expansion);
+    
+    % Bidirectional arrow showing 924 extent with label in center (above 1024 boundary)
+    \draw[<->, line width=1pt, black] (0, \mainsize+\expansion+0.3) -- (\mainsize, \mainsize+\expansion+0.3) node[midway, fill=white, inner sep=2pt, font=\bfseries] {924};
+    
+    % Bidirectional arrow showing 1024 extent with label in center (above 924 arrow)
+    \draw[<->, line width=1pt, blue] (-\expansion, \mainsize+\expansion+0.6) -- (\mainsize, \mainsize+\expansion+0.6);
+    \node[fill=white, inner sep=2pt, font=\bfseries, text=blue] at ({(\mainsize-\expansion)/2}, \mainsize+\expansion+0.6) {1024};
+\end{scope}
+
+% Level 1: Popup showing 462x462 divided into 2x2 (4 squares of 231x231)
+\begin{scope}[shift={(3.2, 0.7)}, local bounding box=level1box]
+    \def\popsize{1.4}
+    \def\quartsize{0.7}
+    
+    % Draw 2x2 grid
+    \draw[draw, line width=0.6pt, fill=gold] (0, 0) rectangle (\quartsize, \quartsize);
+    
+    \draw[draw, line width=0.6pt, fill=teal] (\quartsize, 0) rectangle (\popsize, \quartsize);
+    
+    \draw[draw, line width=0.6pt, fill=gold] (0, \quartsize) rectangle (\quartsize, \popsize);
+    
+    \draw[draw, line width=0.6pt, fill=gold] (\quartsize, \quartsize) rectangle (\popsize, \popsize);
+    
+    % Outer border
+    \draw[line width=1.0pt, black] (0,0) rectangle (\popsize, \popsize);
+    \node[above, font=\bfseries] at (\popsize/2, \popsize+0.1) {462};
+\end{scope}
+
+% Connectors from Level 0 to Level 1 (expanded 462 to entire 462 square)
+\draw[connector, gold] (2.8, 1.4) -- (3.2, 2.1);  % top right corner to top left of Level 1
+\draw[connector, gold] (2.8, 0) -- (3.2, 0.7);  % bottom right corner to bottom left of Level 1
+
+% Level 2: Popup showing 231x231 divided into 3x3 (9 squares of 77x77)
+\begin{scope}[shift={(5, 1.05)}, local bounding box=level2box]
+    \def\gridsize{0.7}
+    \def\cellsize{0.233}
+    
+    % Draw 3x3 grid with different colors
+    \def\cellcolors{{"teal","teal","teal","teal","teal","teal","teal","teal"}}
+    \pgfmathsetmacro{\colorindex}{0}
+    \foreach \i in {0,1,2} {
+        \foreach \j in {0,1,2} {
+            \pgfmathsetmacro{\xpos}{\i*\cellsize}
+            \pgfmathsetmacro{\ypos}{\j*\cellsize}
+            \ifnum\i=2
+                \ifnum\j=0
+                    \draw[draw, line width=0.4pt, fill=green] (\xpos, \ypos) rectangle ++(\cellsize, \cellsize);
+                \else
+                    \pgfmathparse{\cellcolors[int(\colorindex)]}
+                    \edef\currentcolor{\pgfmathresult}
+                    \expandafter\draw\expandafter[draw, line width=0.4pt, fill=\currentcolor] (\xpos, \ypos) rectangle ++(\cellsize, \cellsize);
+                    \pgfmathsetmacro{\colorindex}{\colorindex+1}
+                    \global\let\colorindex\colorindex
+                \fi
+            \else
+                \pgfmathparse{\cellcolors[int(\colorindex)]}
+                \edef\currentcolor{\pgfmathresult}
+                \expandafter\draw\expandafter[draw, line width=0.4pt, fill=\currentcolor] (\xpos, \ypos) rectangle ++(\cellsize, \cellsize);
+                \pgfmathsetmacro{\colorindex}{\colorindex+1}
+                \global\let\colorindex\colorindex
+            \fi
+        }
+    }
+    
+    % Outer border
+    \draw[line width=0.9pt, black] (0,0) rectangle (\gridsize, \gridsize);
+    \node[above, font=\bfseries] at (\gridsize/2, \gridsize+0.1) {231};
+\end{scope}
+
+% Connectors from Level 1 to Level 2 (expanded 231 to entire 231 square)
+\draw[connector, teal] (4.6, 1.4) -- (5, 1.75);  % top right corner to top left of Level 2
+\draw[connector, teal] (4.6, 0.7) -- (5, 1.05);   % bottom right corner to bottom left of Level 2
+
+% Level 3: Show the base multiplier 77x77
+\begin{scope}[shift={(6.1, 1.2835)}, local bounding box=level3box]
+    \def\basesize{0.233}
+    
+    % Draw square with same color as expanded square
+    \draw[draw, line width=0.7pt, black, fill=green] (0,0) rectangle (\basesize, \basesize);
+    
+    % Label on top
+    \node[above, font=\bfseries] at (\basesize/2, \basesize+0.1) {77};
+\end{scope}
+
+% Connectors from Level 2 to Level 3 (expanded 77 to entire base square)
+\draw[connector, gold] (5.699, 1.283) -- (6.1, 1.517);   % top right corner to top left of base
+\draw[connector, gold] (5.699, 1.05) -- (6.1, 1.2835); % bottom right corner to bottom left of base
+
+\end{tikzpicture}

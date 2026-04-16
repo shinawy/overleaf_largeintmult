@@ -1,0 +1,284 @@
+
+% An example of a floating figure using the graphicx package.
+% Note that \label must occur AFTER (or within) \caption.
+% For figures, \caption should occur after the \includegraphics.
+% Note that IEEEtran v1.7 and later has special internal code that
+% is designed to preserve the operation of \label within \caption
+% even when the captionsoff option is in effect. However, because
+% of issues like this, it may be the safest practice to put all your
+% \label just after \caption rather than within \caption{}.
+%
+% Reminder: the "draftcls" or "draftclsnofoot", not "draft", class
+% option should be used if it is desired that the figures are to be
+% displayed while in draft mode.
+%
+
+
+%\begin{figure}[!t]
+%\centering
+%\includegraphics[width=2.5in]{myfigure}
+% where an .eps filename suffix will be assumed under latex, 
+% and a .pdf suffix will be assumed for pdflatex; or what has been declared
+% via \DeclareGraphicsExtensions.
+%\caption{Simulation results for the network.}
+%\label{fig_sim}
+%\end{figure}
+
+% Note that the IEEE typically puts floats only at the top, even when this
+% results in a large percentage of a column being occupied by floats.
+
+
+% An example of a double column floating figure using two subfigures.
+% (The subfig.sty package must be loaded for this to work.)
+% The subfigure \label commands are set within each subfloat command,
+% and the \label for the overall figure must come after \caption.
+% \hfil is used as a separator to get equal spacing.
+% Watch out that the combined width of all the subfigures on a 
+% line do not exceed the text width or a line break will occur.
+%
+%\begin{figure*}[!t]
+%\centering
+%\subfloat[Case I]{\includegraphics[width=2.5in]{box}%
+%\label{fig_first_case}}
+%\hfil
+%\subfloat[Case II]{\includegraphics[width=2.5in]{box}%
+%\label{fig_second_case}}
+%\caption{Simulation results for the network.}
+%\label{fig_sim}
+%\end{figure*}
+%
+% Note that often IEEE papers with subfigures do not employ subfigure
+% captions (using the optional argument to \subfloat[]), but instead will
+% reference/describe all of them (a), (b), etc., within the main caption.
+% Be aware that for subfig.sty to generate the (a), (b), etc., subfigure
+% labels, the optional argument to \subfloat must be present. If a
+% subcaption is not desired, just leave its contents blank,
+% e.g., \subfloat[].
+
+
+% An example of a floating table. Note that, for IEEE style tables, the
+% \caption command should come BEFORE the table and, given that table
+% captions serve much like titles, are usually capitalized except for words
+% such as a, an, and, as, at, but, by, for, in, nor, of, on, or, the, to
+% and up, which are usually not capitalized unless they are the first or
+% last word of the caption. Table text will default to \footnotesize as
+% the IEEE normally uses this smaller font for tables.
+% The \label must come after \caption as always.
+%
+%\begin{table}[!t]
+%% increase table row spacing, adjust to taste
+%\renewcommand{\arraystretch}{1.3}
+% if using array.sty, it might be a good idea to tweak the value of
+% \extrarowheight as needed to properly center the text within the cells
+%\caption{An Example of a Table}
+%\label{table_example}
+%\centering
+%% Some packages, such as MDW tools, offer better commands for making tables
+%% than the plain LaTeX2e tabular which is used here.
+%\begin{tabular}{|c||c|}
+%\hline
+%One & Two\\
+%\hline
+%Three & Four\\
+%\hline
+%\end{tabular}
+%\end{table}
+
+
+% Note that the IEEE does not put floats in the very first column
+% - or typically anywhere on the first page for that matter. Also,
+% in-text middle ("here") positioning is typically not used, but it
+% is allowed and encouraged for Computer Society conferences (but
+% not Computer Society journals). Most IEEE journals/conferences use
+% top floats exclusively. 
+% Note that, LaTeX2e, unlike IEEE journals/conferences, places
+% footnotes above bottom floats. This can be corrected via the
+% \fnbelowfloat command of the stfloats package.
+
+
+
+\section{This is a section} \pagenumbering{roman}
+\subsection{This is a subsection}
+
+\subsubsection{This is a subsubsection}
+This section contains some templates that can be used to create a uniform style within the document. It also shows of the overall formatting of the template, created using the predefined styles from the \texttt{settings.tex} file.
+
+\subsection{General formatting}
+Firstly, the document uses the font mlmodern, using no indent for new paragraphs and commonly uses the color \textcolor{Tue-red}{Tue-red} (the color of the TU/e logo) in its formatting. It uses the \texttt{fancyhdr} package for its headers and footers, using the TU/e logo and report title as the header and the page number as the footer. The template uses custom section, subsection and subsubsection formatting making use of the \texttt{titlesec} package.\\
+The \texttt{hyperref} package is responsible for highlighting and formatting references like figures and tables. For example \cref{table: style 1} or \cref{fig: three images}. It also works for citations \cite{texbook}. Note how figure numbers are numbered according to the format \texttt{<chapter number>.<figure number>}.\\
+
+Bullet lists are also changed globally, for a maximum of 3 levels:
+
+\begin{itemize}
+    \item Item 1
+    \item Item 2
+    \begin{itemize}
+        \item subitem 1
+        \begin{itemize}
+            \item subsubitem 1
+            \item subsubitem 2
+        \end{itemize}
+    \end{itemize}
+    \item Item 3
+\end{itemize}
+
+Similarly numbered lists are also changed document wide:
+
+\begin{enumerate}
+    \item Item 1
+    \item Item 2
+    \begin{enumerate}
+        \item subitem 1
+        \begin{enumerate}
+            \item subsubitem 1
+            \item subsubitem 2
+        \end{enumerate}
+    \end{enumerate}
+    \item Item 3
+\end{enumerate}
+
+\newpage
+
+\subsection{Tables and figures}
+The following table, \cref{table: style 1}, shows a possible format for tables in this document. Alternatively, one can also use the black and white version of this, shown in \cref{table: style 2}. Note that caption labels are in the format \textbf{\textcolor{Tue-red}{Table x.y:} }
+\begin{table}[ht]
+\rowcolors{2}{Tue-red!10}{white}
+\centering
+\caption{A table without vertical lines.}
+\begin{tabular}[t]{ccccc}
+\toprule
+\color{Tue-red}\textbf{Column 1}&\color{Tue-red}\textbf{Column 2}&\color{Tue-red}\textbf{Column 3}&\color{Tue-red}\textbf{Column 4}&\color{Tue-red}\textbf{Column 5}\\
+\midrule
+Entry 1&1&2&3&4\\
+Entry 2&1&2&3&4\\
+Entry 3&1&2&3&4\\
+Entry 4&1&2&3&4\\
+\bottomrule
+\end{tabular}
+\label{table: style 1}
+\end{table}
+
+\begin{table}[ht]
+\rowcolors{2}{gray!10}{white}
+\centering
+\caption{A table without vertical lines.}
+\begin{tabular}[t]{ccccc}
+\toprule
+\textbf{Column 1}&\textbf{Column 2}&\textbf{Column 3}&\textbf{Column 4}&\textbf{Column 5}\\
+\midrule
+Entry 1&1&2&3&4\\
+Entry 2&1&2&3&4\\
+Entry 3&1&2&3&4\\
+Entry 4&1&2&3&4\\
+\bottomrule
+\end{tabular}
+\label{table: style 2}
+\end{table}
+
+For normal, single image figures, the standard \texttt{\textbackslash begin\{figure\}} environment can be used. For multi-image figures, one could use either the \texttt{\textbackslash begin\{subfigure\}} environment to get a main caption with 3 subcaptions like \cref{fig: three images} or the \texttt{\textbackslash begin\{minipage\}} environment to get 3 independent captions like \cref{fig: style 2 image a} - \ref{fig: style 2 image c}
+
+\begin{figure}[H]
+     \centering
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{example-image-a}
+         \caption{image a}
+         \label{fig: style 1 image a}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{example-image-b}
+         \caption{image b}
+         \label{fig: style 1 image b}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.3\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{example-image-c}
+         \caption{image c}
+         \label{fig: style 1 image c}
+     \end{subfigure}
+        \caption{Three images}
+        \label{fig: three images}
+\end{figure}
+
+% mini pages does not support captions
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.3\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{example-image-a}
+  \captionof{figure}{image a}
+  \label{fig: style 2 image a}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{example-image-b}
+  \captionof{figure}{image b}
+  \label{fig: style 2 image b}
+\end{minipage}
+\hfill
+\begin{minipage}{0.3\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{example-image-c}
+  \captionof{figure}{image c}
+  \label{fig: style 2 image c}
+\end{minipage}
+\end{figure}
+
+%% single figure
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.3\textwidth]{myfigure}
+\caption{Simulation results for the network.}
+\label{fig_sim}
+\end{figure}
+
+
+
+% tikzcode 
+% you can export from draw.io the code to embed
+% needs tikz package 
+
+\usepackage{tikz}
+\begin{figure}[h!]
+    \centering
+    \begin{tikzpicture}
+        % Insert the exported TikZ code here
+    \end{tikzpicture}
+    \caption{Your Diagram Caption}
+    \label{fig:your-diagram-label}
+\end{figure}
+
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+
+% % can use a bibliography generated by BibTeX as a .bbl file
+% % BibTeX documentation can be easily obtained at:
+% % http://mirror.ctan.org/biblio/bibtex/contrib/doc/
+% % The IEEEtran BibTeX style support page is at:
+% % http://www.michaelshell.org/tex/ieeetran/bibtex/
+% %\bibliographystyle{IEEEtran}
+% % argument is your BibTeX string definitions and bibliography database(s)
+% %\bibliography{IEEEabrv,../bib/paper}
+% %
+% % <OR> manually copy in the resultant .bbl file
+% % set second argument of \begin to the number of references
+% % (used to reserve space for the reference number labels box)
+% \begin{thebibliography}{1}
+
+% \bibitem{IEEEhowto:kopka}
+% H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
+%   0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+
+% \end{thebibliography}
