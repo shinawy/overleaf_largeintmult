@@ -1,4 +1,4 @@
-FileName=dsp_intmult.tex 
+FileName=ICCADRebuttal.tex
 # LaTeX compiler flags (space-separated list)
 # Example: make LATEXFLAGS="-shell-escape -interaction=nonstopmode" run
 # Example: make LATEXFLAGS="-shell-escape" run-with-bib
@@ -13,14 +13,14 @@ run: $(FileName)
 	@rm -f *.blg *.nav *.bbl *.aux *.log *.out *.snm *.toc *.vrb *.synctex.gz
 
 # Build without cleaning (useful for debugging)
-run-keep: $(LATEXFLAGS) $(FileName)
+run-keep: $(FileName)
 	pdflatex $(LATEXFLAGS) $(FileName)
 
 # Alternative target if you need bibliography support
 run-with-bib: $(FileName)
 	# 1. Compile to a temporary name so uPDF doesn't lock the main file
 	pdflatex $(LATEXFLAGS) -jobname=build_temp $(FileName)
-	bibtex build_temp
+	-bibtex build_temp
 	pdflatex $(LATEXFLAGS) -jobname=build_temp $(FileName)
 	pdflatex $(LATEXFLAGS) -jobname=build_temp $(FileName)
 	
